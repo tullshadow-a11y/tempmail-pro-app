@@ -1,0 +1,6 @@
+{
+  "name": "TempMail Pro - بريد مؤقت احترافي",
+  "description": "تطبيق متكامل لإنشاء البريد الإلكتروني المؤقت واستقبال الرسائل الفورية مع لوحة تحكم ومدونة وباقات اشتراك مميزة",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
