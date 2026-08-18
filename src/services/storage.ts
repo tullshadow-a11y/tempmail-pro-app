@@ -399,7 +399,16 @@ export class StorageService {
   static getSiteSettings(): SiteSettings {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.SITE_SETTINGS);
-      return data ? { ...DEFAULT_SITE_SETTINGS, ...JSON.parse(data) } : DEFAULT_SITE_SETTINGS;
+      if (!data) return DEFAULT_SITE_SETTINGS;
+      const parsed = JSON.parse(data);
+      return {
+        ...DEFAULT_SITE_SETTINGS,
+        ...parsed,
+        sectionsVisibility: {
+          ...DEFAULT_SITE_SETTINGS.sectionsVisibility,
+          ...(parsed?.sectionsVisibility || {}),
+        },
+      };
     } catch {
       return DEFAULT_SITE_SETTINGS;
     }

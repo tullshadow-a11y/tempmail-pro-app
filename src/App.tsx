@@ -95,9 +95,16 @@ export default function App() {
 
     initApp();
 
-    // Check if URL specifies admin or custom route
-    if (window.location.hash === '#admin' || window.location.pathname.includes('/admin')) {
+    // Check if URL specifies route safely
+    const pathname = window.location.pathname || '';
+    const hash = window.location.hash || '';
+
+    if (hash === '#admin' || pathname === '/admin' || pathname.startsWith('/admin/')) {
       setActiveTab('admin');
+    } else if (hash === '#premium' || pathname === '/premium') {
+      setActiveTab('premium');
+    } else if (hash === '#blog' || pathname === '/blog') {
+      setActiveTab('blog');
     }
 
     return () => {
