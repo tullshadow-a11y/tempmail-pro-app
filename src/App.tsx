@@ -95,15 +95,30 @@ export default function App() {
 
     initApp();
 
-    // Check if URL specifies route safely
-    const pathname = window.location.pathname || '';
-    const hash = window.location.hash || '';
+    // Safely check pathname and search/hash parameters
+    const pathname = (window.location.pathname || '').toLowerCase().replace(/\/$/, '');
+    const hash = (window.location.hash || '').toLowerCase();
+    const searchParams = new URLSearchParams(window.location.search || '');
 
-    if (hash === '#admin' || pathname === '/admin' || pathname.startsWith('/admin/')) {
+    if (
+      hash === '#admin' ||
+      pathname === '/admin' ||
+      pathname.startsWith('/admin/') ||
+      searchParams.get('admin') === 'true' ||
+      searchParams.get('tab') === 'admin'
+    ) {
       setActiveTab('admin');
-    } else if (hash === '#premium' || pathname === '/premium') {
+    } else if (
+      hash === '#premium' ||
+      pathname === '/premium' ||
+      searchParams.get('tab') === 'premium'
+    ) {
       setActiveTab('premium');
-    } else if (hash === '#blog' || pathname === '/blog') {
+    } else if (
+      hash === '#blog' ||
+      pathname === '/blog' ||
+      searchParams.get('tab') === 'blog'
+    ) {
       setActiveTab('blog');
     }
 
