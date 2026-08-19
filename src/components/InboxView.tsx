@@ -7,14 +7,9 @@ import {
   Search, 
   Trash2, 
   RefreshCw, 
-  Clock, 
   Key, 
   Paperclip, 
-  Sparkles, 
-  CheckCircle2, 
-  Send,
-  SlidersHorizontal,
-  BellRing
+  Sparkles
 } from 'lucide-react';
 import { MessageDetail, MessageHeader } from '../types';
 
@@ -58,7 +53,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
     if (activeFilter === 'attachments') return msg.hasAttachments;
     if (activeFilter === 'otp') {
       const detail = msg as MessageDetail;
-      return Boolean(detail.extractedOtp || msg.subject.includes('رمز') || msg.subject.includes('كود') || msg.subject.includes('OTP') || msg.subject.includes('Verification'));
+      return Boolean(detail.extractedOtp || msg.subject.includes('OTP') || msg.subject.includes('Code') || msg.subject.includes('Verification') || msg.subject.includes('PIN'));
     }
     return true;
   });
@@ -84,21 +79,21 @@ export const InboxView: React.FC<InboxViewProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-white">صندوق الوارد المباشر</h3>
+                <h3 className="text-lg font-bold text-white">Live Inbox</h3>
                 {messages.length > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    {messages.length} رسالة
+                    {messages.length} {messages.length === 1 ? 'message' : 'messages'}
                   </span>
                 )}
                 {unreadCount > 0 && (
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                    {unreadCount} غير مقروء
+                    {unreadCount} unread
                   </span>
                 )}
               </div>
               <p className="text-xs text-slate-400">
-                يتم استقبال وتحديث الرسائل تلقائياً وفورياً
+                Messages refresh automatically in real-time
               </p>
             </div>
           </div>
@@ -111,16 +106,16 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 id="btn-trigger-test-email"
                 onClick={() => setShowTestMenu(!showTestMenu)}
                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all"
-                title="إرسال رسالة تجريبية لاختبار الصندوق"
+                title="Send a sample email to test the inbox"
               >
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                <span>تجربة وصول رسالة</span>
+                <span>Send Test Email</span>
               </button>
 
               {showTestMenu && (
-                <div className="absolute left-0 mt-2 w-56 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-2 z-30">
+                <div className="absolute right-0 sm:left-0 sm:right-auto mt-2 w-56 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-2 z-30">
                   <div className="text-[11px] font-semibold text-slate-400 px-2 py-1 border-b border-slate-800 mb-1">
-                    اختر نموذج رسالة تجريبية:
+                    Select Test Email Template:
                   </div>
                   {testTemplates.map((tpl) => (
                     <button
@@ -129,7 +124,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                         onSendTestEmail(tpl.key);
                         setShowTestMenu(false);
                       }}
-                      className="w-full text-right px-2.5 py-2 rounded-lg text-xs text-slate-200 hover:bg-slate-800 hover:text-emerald-400 flex items-center justify-between transition-colors"
+                      className="w-full text-left px-2.5 py-2 rounded-lg text-xs text-slate-200 hover:bg-slate-800 hover:text-emerald-400 flex items-center justify-between transition-colors"
                     >
                       <span className="truncate">{tpl.icon} {tpl.name}</span>
                       <span className="font-mono text-[10px] text-slate-400">{tpl.code}</span>
@@ -144,7 +139,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 id="btn-delete-all-inbox"
                 onClick={onDeleteAllMessages}
                 className="p-2 rounded-xl bg-slate-800 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 border border-slate-700/60 transition-colors"
-                title="حذف جميع الرسائل"
+                title="Clear all messages"
               >
                 <Trash2 className="w-4 h-4" />
               </button>
@@ -155,7 +150,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
               onClick={onRefresh}
               disabled={isRefreshing}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/60 transition-colors"
-              title="تحديث يدوي"
+              title="Refresh manually"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-emerald-400' : ''}`} />
             </button>
@@ -167,13 +162,13 @@ export const InboxView: React.FC<InboxViewProps> = ({
           <div className="p-3 sm:px-6 bg-slate-900 border-b border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3">
             {/* Search Input */}
             <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder="بحث في الرسائل والمرسلين..."
+                placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pr-9 pl-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
               />
             </div>
 
@@ -187,7 +182,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                الكل ({messages.length})
+                All ({messages.length})
               </button>
 
               <button
@@ -198,7 +193,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                     : 'bg-slate-800 text-slate-400 hover:text-slate-200'
                 }`}
               >
-                غير مقروءة ({unreadCount})
+                Unread ({unreadCount})
               </button>
 
               <button
@@ -210,7 +205,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 }`}
               >
                 <Key className="w-3 h-3" />
-                <span>أكواد التفعيل</span>
+                <span>OTP Codes</span>
               </button>
 
               <button
@@ -222,7 +217,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 }`}
               >
                 <Paperclip className="w-3 h-3" />
-                <span>مرفقات</span>
+                <span>Attachments</span>
               </button>
             </div>
           </div>
@@ -233,14 +228,14 @@ export const InboxView: React.FC<InboxViewProps> = ({
           {isLoading && messages.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-12 text-center">
               <RefreshCw className="w-8 h-8 text-emerald-400 animate-spin mb-3" />
-              <p className="text-sm font-semibold text-slate-300">جاري الاتصال بصندوق البريد...</p>
+              <p className="text-sm font-semibold text-slate-300">Connecting to mailbox...</p>
             </div>
           ) : filteredMessages.length > 0 ? (
             <AnimatePresence>
               {filteredMessages.map((msg) => {
                 const detail = msg as MessageDetail;
                 const otp = detail.extractedOtp;
-                const timeString = new Date(msg.createdAt).toLocaleTimeString('ar-SA', {
+                const timeString = new Date(msg.createdAt).toLocaleTimeString('en-US', {
                   hour: '2-digit',
                   minute: '2-digit',
                 });
@@ -253,7 +248,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                     exit={{ opacity: 0, scale: 0.95 }}
                     onClick={() => onSelectMessage(msg.id)}
                     className={`p-4 sm:p-5 flex items-center justify-between gap-4 cursor-pointer transition-all hover:bg-slate-800/60 group ${
-                      !msg.seen ? 'bg-slate-850/60 border-r-4 border-emerald-500' : 'bg-transparent'
+                      !msg.seen ? 'bg-slate-850/60 border-l-4 border-emerald-500' : 'bg-transparent'
                     }`}
                   >
                     <div className="flex items-start gap-3.5 flex-1 min-w-0">
@@ -273,7 +268,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                             <span className={`text-sm truncate ${!msg.seen ? 'font-bold text-white' : 'font-medium text-slate-300'}`}>
                               {msg.from.name || msg.from.address}
                             </span>
-                            <span className="text-[11px] text-slate-500 font-mono hidden sm:inline truncate dir-ltr">
+                            <span className="text-[11px] text-slate-500 font-mono hidden sm:inline truncate">
                               &lt;{msg.from.address}&gt;
                             </span>
                           </div>
@@ -289,18 +284,18 @@ export const InboxView: React.FC<InboxViewProps> = ({
                         </div>
 
                         <h4 className={`text-xs sm:text-sm truncate mb-1 ${!msg.seen ? 'font-semibold text-emerald-300' : 'text-slate-300'}`}>
-                          {msg.subject || '(بدون عنوان)'}
+                          {msg.subject || '(No Subject)'}
                         </h4>
 
                         <p className="text-xs text-slate-400 line-clamp-1">
-                          {msg.intro || 'انقر لفتح وقراءة محتوى الرسالة...'}
+                          {msg.intro || 'Click to view full email content...'}
                         </p>
 
                         {/* Extracted OTP Badge in Inbox Card */}
                         {otp && (
                           <div className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-mono font-bold">
                             <Key className="w-3 h-3" />
-                            <span>كود التفعيل:</span>
+                            <span>Verification Code:</span>
                             <span className="text-white bg-slate-900 px-1.5 py-0.5 rounded tracking-wider">{otp}</span>
                           </div>
                         )}
@@ -310,7 +305,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                     {/* Delete Message Button */}
                     <button
                       onClick={(e) => onDeleteMessage(msg.id, e)}
-                      title="حذف هذه الرسالة"
+                      title="Delete message"
                       className="opacity-0 group-hover:opacity-100 p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-slate-700/80 transition-all shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -332,10 +327,10 @@ export const InboxView: React.FC<InboxViewProps> = ({
               </div>
 
               <h4 className="text-base sm:text-lg font-bold text-white mb-1.5">
-                صندوق الوارد فارغ حالياً
+                Your inbox is currently empty
               </h4>
               <p className="text-xs sm:text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-                في انتظار وصول الرسائل... لا داعي لتحديث الصفحة، ستظهر الرسائل وأكواد التفعيل هنا فور إرسالها إليك.
+                Waiting for incoming emails... Messages and activation codes will appear here automatically as soon as they arrive.
               </p>
 
               {/* Instant Test Button */}
@@ -345,7 +340,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-900/30 transition-all active:scale-95"
               >
                 <Sparkles className="w-4 h-4 text-emerald-200" />
-                <span>إرسال رسالة تجريبية فورية (اختبار الصندوق)</span>
+                <span>Send Instant Test Email</span>
               </button>
             </div>
           )}
@@ -355,11 +350,11 @@ export const InboxView: React.FC<InboxViewProps> = ({
         <div className="p-3.5 bg-slate-950 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 px-4 sm:px-6">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>حالة السيرفر: متصل ويعمل بسرعة فائقة</span>
+            <span>Server Status: Connected & Operational</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span>التخزين: مجاني 100%</span>
+            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">Ready</span>
           </div>
         </div>
       </div>
