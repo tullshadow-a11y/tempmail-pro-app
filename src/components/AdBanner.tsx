@@ -24,10 +24,12 @@ export const AdBanner: React.FC<AdBannerProps> = ({ slot, position, onDismissSoc
         container.innerHTML = '';
         
         // Create range to execute scripts if any
-        const range = document.createRange();
-        range.selectNode(container);
-        const fragment = range.createContextualFragment(slot.codeSnippet);
-        container.appendChild(fragment);
+        if (document.body.contains(container)) {
+          const range = document.createRange();
+          range.selectNodeContents(container);
+          const fragment = range.createContextualFragment(slot.codeSnippet);
+          container.appendChild(fragment);
+        }
       } catch (err) {
         console.warn('Ad script injection notice:', err);
       }

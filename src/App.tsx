@@ -95,9 +95,31 @@ export default function App() {
 
     initApp();
 
-    // Check if URL specifies admin or custom route
-    if (window.location.hash === '#admin' || window.location.pathname.includes('/admin')) {
+    // Safely check pathname and search/hash parameters
+    const pathname = (window.location.pathname || '').toLowerCase().replace(/\/$/, '');
+    const hash = (window.location.hash || '').toLowerCase();
+    const searchParams = new URLSearchParams(window.location.search || '');
+
+    if (
+      hash === '#admin' ||
+      pathname === '/admin' ||
+      pathname.startsWith('/admin/') ||
+      searchParams.get('admin') === 'true' ||
+      searchParams.get('tab') === 'admin'
+    ) {
       setActiveTab('admin');
+    } else if (
+      hash === '#premium' ||
+      pathname === '/premium' ||
+      searchParams.get('tab') === 'premium'
+    ) {
+      setActiveTab('premium');
+    } else if (
+      hash === '#blog' ||
+      pathname === '/blog' ||
+      searchParams.get('tab') === 'blog'
+    ) {
+      setActiveTab('blog');
     }
 
     return () => {
