@@ -4,15 +4,15 @@ import {
   Copy, 
   Check, 
   RefreshCw, 
-  Edit3, 
   Trash2, 
-  QrCode, 
-  Shield, 
   Clock, 
+  Plus,
+  ChevronDown,
   Sparkles,
-  ChevronDown
+  Edit3
 } from 'lucide-react';
 import { Account, DomainItem } from '../types';
+import { LanguageOption, t } from '../utils/i18n';
 
 interface EmailGeneratorCardProps {
   account: Account | null;
@@ -20,6 +20,7 @@ interface EmailGeneratorCardProps {
   isLoading: boolean;
   isRefreshing: boolean;
   refreshSecondsLeft: number;
+  currentLang: LanguageOption;
   onRefresh: () => void;
   onChangeEmail: (customUsername?: string, customDomain?: string) => Promise<void>;
   onDeleteEmail: () => Promise<void>;
@@ -32,10 +33,10 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   isLoading,
   isRefreshing,
   refreshSecondsLeft,
+  currentLang,
   onRefresh,
   onChangeEmail,
   onDeleteEmail,
-  onOpenQR,
 }) => {
   const [copied, setCopied] = useState(false);
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -45,6 +46,15 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   const [isChanging, setIsChanging] = useState(false);
 
   const emailAddress = account?.address || 'Generating temporary email...';
+
+  // Format countdown mm:ss (e.g. 09:59 or 00:10)
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const formattedMins = String(mins).padStart(2, '0');
+    const formattedSecs = String(secs).padStart(2, '0');
+    return `${formattedMins}:${formattedSecs}`;
+  };
 
   const handleCopy = () => {
     if (!account?.address) return;
@@ -79,165 +89,138 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
       await onChangeEmail(cleanUser, selectedDomain || domains[0]?.domain);
       setShowCustomModal(false);
     } catch (err: any) {
-      setCustomError('Could not create custom email. Please try another username or domain.');
+      setCustomError('Could not create custom email. Please try another username.');
     } finally {
       setIsChanging(false);
     }
   };
 
-  const handleRandomChange = async () => {
+  const handleNewEmailClick = async () => {
     try {
       setIsChanging(true);
       await onChangeEmail();
-      setShowCustomModal(false);
     } finally {
       setIsChanging(false);
     }
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto my-6 px-4">
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-5 sm:p-7 backdrop-blur-xl">
-        {/* Glow decorative effects */}
+    <div className="w-full max-w-4xl mx-auto my-8 px-4">
+      {/* Hero Headline Section */}
+      <div className="text-center mb-8">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight mb-3">
+          {t('heroTitle', currentLang.code)}
+        </h1>
+        <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed">
+          {t('heroSub', currentLang.code)}
+        </p>
+      </div>
+
+      {/* Hero Dark Glassmorphism Card */}
+      <div className="relative overflow-hidden rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-6 sm:p-8 backdrop-blur-xl">
+        {/* Glow Effects */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Top Header info */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-slate-800/80 pb-4">
-          <div className="flex items-center gap-2.5">
-            <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-            </span>
-            <span className="text-xs sm:text-sm font-semibold text-emerald-400">
-              Temporary email ready
-            </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-emerald-400 font-bold border border-emerald-500/30">
-              Active
-            </span>
+        {/* Top Active Countdown Display */}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/40 shadow-inner">
+            <Clock className="w-4 h-4 text-emerald-400 animate-pulse" />
           </div>
-
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <span>Auto-refresh in:</span>
-            <span className="font-mono font-bold text-emerald-400 bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-700">
-              {refreshSecondsLeft}s
+          <div className="flex items-center gap-2">
+            <span className="text-xs sm:text-sm font-semibold text-slate-300">
+              {t('autoRefreshIn', currentLang.code)}
+            </span>
+            <span className="font-mono text-base sm:text-lg font-bold text-emerald-400 bg-slate-950 px-3 py-1 rounded-xl border border-slate-800 shadow-inner">
+              {formatCountdown(refreshSecondsLeft)}
             </span>
           </div>
         </div>
 
-        {/* The Email Display Box */}
-        <div className="relative mb-6">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-950/90 border border-slate-700/80 focus-within:border-emerald-500/60 transition-all shadow-inner">
-            <div className="flex-1 flex items-center gap-3 px-3 py-2 overflow-hidden">
-              <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
-                <Shield className="w-5 h-5" />
-              </div>
-              <div className="overflow-hidden flex-1 text-left">
-                <span className="text-xs text-slate-400 block font-sans">Temporary Email Address:</span>
-                <input
-                  type="text"
-                  readOnly
-                  value={emailAddress}
-                  className="w-full bg-transparent font-mono-code font-bold text-base sm:text-lg md:text-xl text-emerald-400 outline-none select-all truncate cursor-pointer tracking-wide"
-                  onClick={handleCopy}
-                  title="Click to copy"
-                />
-              </div>
-            </div>
-
-            {/* Quick Action buttons in display */}
-            <div className="flex items-center gap-2 justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
-              <button
-                id="btn-copy-email-main"
+        {/* Centered Email Box with Glowing Border & Green Copy Button */}
+        <div className="relative mb-8">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-3 sm:p-4 rounded-2xl bg-slate-950/90 border-2 border-emerald-500/60 shadow-lg shadow-emerald-500/10 transition-all">
+            <div className="flex-1 overflow-hidden px-2 py-1 text-center md:text-left">
+              <span className="text-xs text-slate-400 block font-sans mb-1">
+                {t('tempMailAddress', currentLang.code)}
+              </span>
+              <input
+                type="text"
+                readOnly
+                value={emailAddress}
                 onClick={handleCopy}
-                disabled={isLoading || !account}
-                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 ${
-                  copied
-                    ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/30'
-                    : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
-                }`}
-              >
-                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span>{copied ? 'Copied' : 'Copy Email'}</span>
-              </button>
-
-              <button
-                id="btn-qr-modal-open"
-                onClick={onOpenQR}
-                disabled={isLoading || !account}
-                title="Show Phone QR Code"
-                className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all"
-              >
-                <QrCode className="w-5 h-5" />
-              </button>
+                title="Click to copy"
+                className="w-full bg-transparent font-mono-code font-bold text-lg sm:text-xl md:text-2xl text-emerald-400 outline-none select-all truncate text-center md:text-left cursor-pointer tracking-wide"
+              />
             </div>
+
+            {/* Inner Green Copy Button */}
+            <button
+              id="btn-copy-email-inside"
+              onClick={handleCopy}
+              disabled={isLoading || !account}
+              className={`flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm transition-all shadow-lg shrink-0 active:scale-95 ${
+                copied
+                  ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/40'
+                  : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-emerald-500/20'
+              }`}
+            >
+              {copied ? <Check className="w-5 h-5 stroke-[2.5]" /> : <Copy className="w-5 h-5 stroke-[2.5]" />}
+              <span>{copied ? t('copied', currentLang.code) : t('copyEmail', currentLang.code)}</span>
+            </button>
           </div>
         </div>
 
-        {/* 4 Core Action Buttons Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-          {/* 1. Copy Button */}
+        {/* Three Distinct Action Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
+
+          {/* 1. Filled Blue "New Mail" / "بريد جديد" */}
           <button
-            id="btn-action-copy"
-            onClick={handleCopy}
-            disabled={isLoading || !account}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-emerald-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
+            id="btn-action-new-mail"
+            onClick={handleNewEmailClick}
+            disabled={isLoading || isChanging}
+            className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-600/30 transition-all active:scale-95 group"
           >
-            {copied ? (
-              <Check className="w-4 h-4 text-emerald-400" />
-            ) : (
-              <Copy className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-            )}
-            <span>{copied ? 'Copied' : 'Copy Email'}</span>
+            <Plus className="w-5 h-5 group-hover:scale-110 transition-transform stroke-[2.5]" />
+            <span>{t('newMail', currentLang.code)}</span>
           </button>
 
-          {/* 2. Refresh Inbox */}
+          {/* 2. Outlined Yellow "Refresh" / "تحديث" */}
           <button
-            id="btn-action-refresh"
+            id="btn-action-refresh-yellow"
             onClick={onRefresh}
             disabled={isRefreshing || isLoading}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-teal-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
+            className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl bg-transparent border-2 border-amber-400 hover:bg-amber-400/10 text-amber-300 font-bold text-sm sm:text-base shadow-lg transition-all active:scale-95 group"
           >
-            <RefreshCw className={`w-4 h-4 text-teal-400 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Inbox'}</span>
+            <RefreshCw className={`w-5 h-5 text-amber-400 stroke-[2.5] ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
+            <span>{t('refresh', currentLang.code)}</span>
           </button>
 
-          {/* 3. Change Email (Custom or Random) */}
+          {/* 3. Outlined Red "Delete" / "حذف" */}
           <button
-            id="btn-action-change"
-            onClick={handleOpenCustomModal}
-            disabled={isLoading}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-amber-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
-          >
-            <Edit3 className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span>Change Email</span>
-          </button>
-
-          {/* 4. Delete Email */}
-          <button
-            id="btn-action-delete"
+            id="btn-action-delete-red"
             onClick={onDeleteEmail}
             disabled={isLoading}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 text-slate-200 hover:text-rose-200 border border-slate-700/80 hover:border-rose-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
+            className="flex items-center justify-center gap-2.5 py-3.5 px-5 rounded-xl bg-transparent border-2 border-rose-500 hover:bg-rose-500/10 text-rose-300 font-bold text-sm sm:text-base shadow-lg transition-all active:scale-95 group"
           >
-            <Trash2 className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
-            <span>Delete & New</span>
+            <Trash2 className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform stroke-[2.5]" />
+            <span>{t('delete', currentLang.code)}</span>
           </button>
         </div>
 
-        {/* Auto Refresh Progress bar */}
-        <div className="mt-4 w-full bg-slate-950 rounded-full h-1 overflow-hidden">
-          <motion.div
-            className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full"
-            initial={{ width: '0%' }}
-            animate={{ width: `${((10 - refreshSecondsLeft) / 10) * 100}%` }}
-            transition={{ duration: 1, ease: 'linear' }}
-          />
+        {/* Secondary Custom Alias Button */}
+        <div className="mt-4 text-center">
+          <button
+            onClick={handleOpenCustomModal}
+            className="inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-emerald-400 font-semibold transition-colors"
+          >
+            <Edit3 className="w-3.5 h-3.5" />
+            <span>{t('changeEmail', currentLang.code)}</span>
+          </button>
         </div>
       </div>
 
-      {/* Change / Custom Email Modal */}
+      {/* Custom Username Modal */}
       {showCustomModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
@@ -256,8 +239,8 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Custom Email Address</h3>
-                  <p className="text-xs text-slate-400">Choose a custom username or generate a random address</p>
+                  <h3 className="text-lg font-bold text-white">{t('changeEmail', currentLang.code)}</h3>
+                  <p className="text-xs text-slate-400">Specify custom prefix and domain</p>
                 </div>
               </div>
             </div>
@@ -267,15 +250,13 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                   Username:
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={customUsername}
-                    onChange={(e) => setCustomUsername(e.target.value)}
-                    placeholder="e.g. myname, test.user, john"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none placeholder-slate-600 text-left"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={customUsername}
+                  onChange={(e) => setCustomUsername(e.target.value)}
+                  placeholder="e.g. user.test"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none placeholder-slate-600 text-left"
+                />
               </div>
 
               <div>
@@ -293,17 +274,9 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                         @{dom.domain}
                       </option>
                     ))}
-                    {domains.length === 0 && (
-                      <option value="inboxbear.com">@inboxbear.com</option>
-                    )}
                   </select>
                   <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
                 </div>
-              </div>
-
-              {/* Preview */}
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono text-center text-emerald-400 truncate">
-                {customUsername.trim() || 'username'}@{selectedDomain || domains[0]?.domain || 'inboxbear.com'}
               </div>
 
               {customError && (
@@ -319,27 +292,17 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                   className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
                   {isChanging ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  <span>Save Custom Email</span>
+                  <span>Save</span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={handleRandomChange}
-                  disabled={isChanging}
-                  className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition-all flex items-center justify-center gap-1.5"
+                  onClick={() => setShowCustomModal(false)}
+                  className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition-all"
                 >
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>Random</span>
+                  Cancel
                 </button>
               </div>
-
-              <button
-                type="button"
-                onClick={() => setShowCustomModal(false)}
-                className="w-full text-center text-xs text-slate-400 hover:text-slate-200 pt-1"
-              >
-                Cancel
-              </button>
             </form>
           </motion.div>
         </div>
