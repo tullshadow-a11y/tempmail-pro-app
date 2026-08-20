@@ -22,8 +22,8 @@ export function extractVerificationCode(text?: string, html?: string): string | 
 
   // Patterns for OTP / verification codes
   const patterns = [
-    /(?:code|verification|otp|pin|password)\s*(?:is|:|:-|=|:)?\s*([0-9A-Z]{4,8})\b/i,
-    /(?:enter|use|input)\s+([0-9]{4,8})\b/i,
+    /(?:code|verification|otp|pin|رمز|كود|الرمز|رمز التحقق|رمز التفعيل|تأكيد|password|كلمة المرور)\s*(?:is|:|:-|=|هو|:)?\s*([0-9A-Z]{4,8})\b/i,
+    /(?:enter|use|input|ادخل)\s+([0-9]{4,8})\b/i,
     /\b([0-9]{6})\b/, // 6-digit standard OTP
     /\b([0-9]{4})\b/, // 4-digit standard OTP
   ];
@@ -32,7 +32,7 @@ export function extractVerificationCode(text?: string, html?: string): string | 
     const match = content.match(pattern);
     if (match && match[1]) {
       const code = match[1].trim();
-      // Ignore years or standard non-codes like 2024, 2025, 2026 if standalone
+      // Ignore years or standard non-codes like 2024, 2025, 2026 if standalone unless strong match
       if (code.length === 4 && (code.startsWith('19') || code.startsWith('20'))) {
         continue;
       }
@@ -169,7 +169,7 @@ export class MailGwService {
         msgid: msg.msgid,
         from: msg.from || { address: 'unknown@sender.com', name: 'Unknown Sender' },
         to: msg.to || [],
-        subject: msg.subject || '(No Subject)',
+        subject: msg.subject || '(بدون عنوان - No Subject)',
         intro: msg.intro || '',
         seen: Boolean(msg.seen),
         isDeleted: Boolean(msg.isDeleted),
@@ -209,7 +209,7 @@ export class MailGwService {
         msgid: data.msgid,
         from: data.from || { address: 'noreply@service.com', name: 'Service' },
         to: data.to || [],
-        subject: data.subject || '(No Subject)',
+        subject: data.subject || '(بدون عنوان)',
         intro: data.intro || '',
         seen: true,
         isDeleted: Boolean(data.isDeleted),

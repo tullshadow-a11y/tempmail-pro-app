@@ -9,8 +9,10 @@ import {
   ArrowLeft, 
   Share2, 
   MessageSquare, 
+  User, 
   Calendar,
-  Check
+  Check,
+  Sparkles
 } from 'lucide-react';
 import { BlogPost } from '../types';
 
@@ -28,20 +30,20 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
   onBackToList,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
   const [copiedLink, setCopiedLink] = useState(false);
   const [comments, setComments] = useState<Array<{ name: string; text: string; time: string }>>([
-    { name: 'Michael Reed', text: 'Extremely helpful article! Using disposable email saved my personal mailbox from endless marketing spam.', time: '2 days ago' },
-    { name: 'David K.', text: 'Great breakdown on QA testing workflows. Was looking for a reliable setup for local staging.', time: '4 days ago' },
+    { name: 'محمد عبد الله', text: 'مقال مفيد جداً! استخدام البريد المؤقت وفر علي ساعات من مسح رسائل الـ Spam.', time: 'منذ يومين' },
+    { name: 'طارق حسام', text: 'كنت أتساءل دائماً كيف أختبر التسجيل في موقعي البرمجي، شكراً على الشرح الوافي.', time: 'منذ 4 أيام' },
   ]);
   const [newCommentName, setNewCommentName] = useState('');
   const [newCommentText, setNewCommentText] = useState('');
 
-  const categories = ['All', ...Array.from(new Set(posts.map(p => p.category)))];
+  const categories = ['الكل', ...Array.from(new Set(posts.map(p => p.category)))];
 
   const filteredPosts = posts.filter((p) => {
     if (!p.published) return false;
-    const matchesCat = selectedCategory === 'All' || p.category === selectedCategory;
+    const matchesCat = selectedCategory === 'الكل' || p.category === selectedCategory;
     const matchesSearch = 
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -65,7 +67,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
       {
         name: newCommentName.trim(),
         text: newCommentText.trim(),
-        time: 'Just now',
+        time: 'الآن',
       },
     ]);
     setNewCommentName('');
@@ -84,11 +86,11 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
           className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-slate-400 hover:text-white mb-6 p-2 rounded-xl hover:bg-slate-900 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Articles</span>
+          <span>العودة إلى قائمة المقالات</span>
         </button>
 
         {/* Post Container */}
-        <article className="rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden shadow-2xl p-6 sm:p-10 mb-10 text-left">
+        <article className="rounded-3xl bg-slate-900 border border-slate-800 overflow-hidden shadow-2xl p-6 sm:p-10 mb-10">
           {/* Post Header */}
           <div className="mb-6">
             <div className="flex items-center gap-2 mb-3">
@@ -123,18 +125,18 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <Calendar className="w-4 h-4 text-slate-500" />
-                  {new Date(currentPost.createdAt).toLocaleDateString('en-US')}
+                  {new Date(currentPost.createdAt).toLocaleDateString('ar-SA')}
                 </span>
                 <span className="flex items-center gap-1">
                   <Eye className="w-4 h-4 text-slate-500" />
-                  {currentPost.views} reads
+                  {currentPost.views} قراءة
                 </span>
                 <button
                   onClick={handleShare}
                   className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors"
                 >
                   {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5" />}
-                  <span>{copiedLink ? 'Link Copied' : 'Share'}</span>
+                  <span>{copiedLink ? 'تم نسخ الرابط' : 'مشاركة'}</span>
                 </button>
               </div>
             </div>
@@ -160,7 +162,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
           {/* Tags */}
           <div className="mt-8 pt-6 border-t border-slate-800 flex flex-wrap items-center gap-2">
             <span className="text-xs text-slate-400 flex items-center gap-1">
-              <Tag className="w-3.5 h-3.5 text-emerald-400" /> Tags:
+              <Tag className="w-3.5 h-3.5 text-emerald-400" /> الوسوم:
             </span>
             {currentPost.tags.map((tag, idx) => (
               <span key={idx} className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 text-xs font-semibold">
@@ -171,10 +173,10 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
         </article>
 
         {/* Comments Section */}
-        <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 mb-10 shadow-xl text-left">
+        <div className="rounded-3xl bg-slate-900 border border-slate-800 p-6 sm:p-8 mb-10 shadow-xl">
           <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
             <MessageSquare className="w-5 h-5 text-emerald-400" />
-            <span>Discussion & Comments ({comments.length})</span>
+            <span>التعليقات والمناقشات ({comments.length})</span>
           </h3>
 
           {/* Comment list */}
@@ -190,18 +192,18 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
                   </div>
                   <span className="text-[11px] text-slate-500 font-mono">{c.time}</span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-300 pl-9 leading-relaxed">{c.text}</p>
+                <p className="text-xs sm:text-sm text-slate-300 pr-9 leading-relaxed">{c.text}</p>
               </div>
             ))}
           </div>
 
           {/* Add Comment Form */}
           <form onSubmit={handleAddComment} className="space-y-3 pt-4 border-t border-slate-800">
-            <h4 className="text-xs font-bold text-slate-300">Add a Comment:</h4>
+            <h4 className="text-xs font-bold text-slate-300">أضف تعليقاً على المقال:</h4>
             <input
               type="text"
               required
-              placeholder="Your name..."
+              placeholder="اسمك أو لقبك..."
               value={newCommentName}
               onChange={(e) => setNewCommentName(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
@@ -209,7 +211,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
             <textarea
               required
               rows={3}
-              placeholder="Write your comment or question..."
+              placeholder="اكتب تعليقك أو استفسارك هنا..."
               value={newCommentText}
               onChange={(e) => setNewCommentText(e.target.value)}
               className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500 resize-none"
@@ -218,15 +220,15 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
               type="submit"
               className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-colors"
             >
-              Post Comment
+              نشر التعليق
             </button>
           </form>
         </div>
 
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
-          <div className="text-left">
-            <h3 className="text-lg font-bold text-white mb-4">Related Articles</h3>
+          <div>
+            <h3 className="text-lg font-bold text-white mb-4">مقالات ذات صلة</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {relatedPosts.map((post) => (
                 <div
@@ -253,26 +255,26 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
       <div className="text-center max-w-2xl mx-auto mb-10">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold mb-3 border border-emerald-500/20">
           <BookOpen className="w-4 h-4" />
-          <span>Knowledge Center & Tech Blog</span>
+          <span>مركز المعرفة والمدونة التقنية</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight mb-3">
-          Latest Articles in Security & Privacy
+          أحدث المقالات والأدلة في الأمن والخصوصية
         </h1>
         <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-          Comprehensive guides on protecting your personal data, combating spam, and getting the most from disposable mail.
+          دليلك الشامل لحماية بياناتك الشخصية، مكافحة الرسائل المزعجة، والاستفادة القصوى من تقنيات البريد الإلكتروني.
         </p>
       </div>
 
       {/* Search & Category Filter Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
         <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+          <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
           <input
             type="text"
-            placeholder="Search articles & tags..."
+            placeholder="بحث في المقالات والوسوم..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-10 pr-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl pr-10 pl-3 py-2 text-xs sm:text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
           />
         </div>
 
@@ -294,7 +296,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
       </div>
 
       {/* Posts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-left">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredPosts.map((post) => (
           <motion.div
             key={post.id}
@@ -311,7 +313,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                 />
-                <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-slate-950/80 backdrop-blur-md text-emerald-400 text-[11px] font-bold border border-slate-800">
+                <span className="absolute top-3 right-3 px-2.5 py-1 rounded-lg bg-slate-950/80 backdrop-blur-md text-emerald-400 text-[11px] font-bold border border-slate-800">
                   {post.category}
                 </span>
               </div>
