@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   LANG: 'tempmail_lang',
   ANALYTICS: 'tempmail_analytics',
   PREMIUM_STATUS: 'tempmail_premium_user',
+  GENERATED_COUNT: 'tempmail_generated_count',
 };
 
 export const DEFAULT_AD_SLOTS: AdSlotConfig[] = [
@@ -437,6 +438,26 @@ export class StorageService {
   }
 
   // Premium status
+  static getGeneratedCount(): number {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.GENERATED_COUNT);
+      return data ? parseInt(data, 10) : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  static incrementGeneratedCount(): number {
+    try {
+      const current = this.getGeneratedCount();
+      const updated = current + 1;
+      localStorage.setItem(STORAGE_KEYS.GENERATED_COUNT, String(updated));
+      return updated;
+    } catch {
+      return 1;
+    }
+  }
+
   static isPremium(): boolean {
     try {
       return localStorage.getItem(STORAGE_KEYS.PREMIUM_STATUS) === 'true';

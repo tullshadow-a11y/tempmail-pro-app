@@ -235,11 +235,17 @@ export default function App() {
   // CHANGE EMAIL
   // -------------------------------------------------------------
   const handleChangeEmail = async (customUser?: string, customDomain?: string) => {
+    if (!isPremium && StorageService.getGeneratedCount() >= 10) {
+      setActiveTab('premium');
+      alert(currentLang.code === 'ar' ? 'لقد وصلت إلى الحد الأقصى للمستخدم غير المسجل (10 إيميلات مجانية). يرجى تسجيل الدخول أو الترقية للتعامل مع عدد غير محدود.' : 'You have reached the limit of 10 free emails for unauthenticated users. Please Sign Up / Log In to continue.');
+      return;
+    }
     setIsLoading(true);
     try {
       const { account: newAcc } = await MultiMailService.createAccount(customUser, customDomain);
       setAccount(newAcc);
       StorageService.saveAccount(newAcc);
+      StorageService.incrementGeneratedCount();
       setMessages([]);
       prevMsgCountRef.current = 0;
       setRefreshSecondsLeft(600);
@@ -256,6 +262,11 @@ export default function App() {
   // -------------------------------------------------------------
   const handleDeleteEmail = async () => {
     if (!account) return;
+    if (!isPremium && StorageService.getGeneratedCount() >= 10) {
+      setActiveTab('premium');
+      alert(currentLang.code === 'ar' ? 'لقد وصلت إلى الحد الأقصى للمستخدم غير المسجل (10 إيميلات مجانية). يرجى تسجيل الدخول أو الترقية للمتابعة.' : 'You have reached the 10 free email limit for unauthenticated users. Please Sign Up / Log In to continue.');
+      return;
+    }
     setIsLoading(true);
     try {
       if (account.token) {
@@ -265,6 +276,7 @@ export default function App() {
       const { account: freshAcc } = await MultiMailService.createAccount();
       setAccount(freshAcc);
       StorageService.saveAccount(freshAcc);
+      StorageService.incrementGeneratedCount();
       setMessages([]);
       prevMsgCountRef.current = 0;
       setRefreshSecondsLeft(600);

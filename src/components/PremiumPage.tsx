@@ -139,6 +139,22 @@ export const PremiumPage: React.FC<PremiumPageProps> = ({
           Enjoy an ad-free interface, unblocked VIP email domains, extra storage space, and complete developer API access.
         </p>
 
+        {/* VIP Locked Features Highlight */}
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 text-left">
+          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs font-bold text-amber-300">
+            <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>Private Custom Domains</span>
+          </div>
+          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs font-bold text-amber-300">
+            <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>Automatic Email Forwarding</span>
+          </div>
+          <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2 text-xs font-bold text-amber-300">
+            <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>Custom Email Prefix</span>
+          </div>
+        </div>
+
         {isPremium && (
           <div className="mt-6 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-4 max-w-md mx-auto">
             <div className="flex items-center gap-3 text-left">
