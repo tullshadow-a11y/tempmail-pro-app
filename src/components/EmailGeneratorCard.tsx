@@ -4,15 +4,16 @@ import {
   Copy, 
   Check, 
   RefreshCw, 
-  Edit3, 
   Trash2, 
   QrCode, 
   Shield, 
   Clock, 
+  PlusCircle,
   Sparkles,
   ChevronDown
 } from 'lucide-react';
 import { Account, DomainItem } from '../types';
+import { Language, translations } from '../utils/i18n';
 
 interface EmailGeneratorCardProps {
   account: Account | null;
@@ -20,6 +21,7 @@ interface EmailGeneratorCardProps {
   isLoading: boolean;
   isRefreshing: boolean;
   refreshSecondsLeft: number;
+  language: Language;
   onRefresh: () => void;
   onChangeEmail: (customUsername?: string, customDomain?: string) => Promise<void>;
   onDeleteEmail: () => Promise<void>;
@@ -32,6 +34,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   isLoading,
   isRefreshing,
   refreshSecondsLeft,
+  language,
   onRefresh,
   onChangeEmail,
   onDeleteEmail,
@@ -44,7 +47,8 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   const [customError, setCustomError] = useState('');
   const [isChanging, setIsChanging] = useState(false);
 
-  const emailAddress = account?.address || 'Generating temporary email...';
+  const t = translations[language];
+  const emailAddress = account?.address || 'جاري إنشاء بريد إلكتروني مؤقت...';
 
   const handleCopy = () => {
     if (!account?.address) return;
@@ -65,12 +69,12 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   const handleApplyCustomEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customUsername.trim()) {
-      setCustomError('Please enter a username');
+      setCustomError('يرجى إدخال اسم المستخدِم');
       return;
     }
     const cleanUser = customUsername.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
     if (cleanUser.length < 3) {
-      setCustomError('Username must be at least 3 characters');
+      setCustomError('يجب أن يتكون اسم المستخدم من 3 أحرف على الأقل');
       return;
     }
 
@@ -79,7 +83,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
       await onChangeEmail(cleanUser, selectedDomain || domains[0]?.domain);
       setShowCustomModal(false);
     } catch (err: any) {
-      setCustomError('Could not create custom email. Please try another username or domain.');
+      setCustomError('تعذر إنشاء البريد المخصص. يرجى اختيار اسم آخر.');
     } finally {
       setIsChanging(false);
     }
@@ -97,76 +101,74 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
 
   return (
     <div className="w-full max-w-4xl mx-auto my-6 px-4">
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-5 sm:p-7 backdrop-blur-xl">
-        {/* Glow decorative effects */}
+      {/* Dark Glassmorphism Mail Card */}
+      <div className="relative overflow-hidden rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl p-5 sm:p-7 backdrop-blur-xl">
+        {/* Glow ambient background effects */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Top Header info */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-slate-800/80 pb-4">
+        {/* Top Header Row with Countdown Timer */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 border-b border-slate-800 pb-4">
           <div className="flex items-center gap-2.5">
             <span className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500" />
             </span>
             <span className="text-xs sm:text-sm font-semibold text-emerald-400">
-              Temporary email ready
-            </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-emerald-400 font-bold border border-emerald-500/30">
-              Active
+              {t.activeStatus}
             </span>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <span>Auto-refresh in:</span>
-            <span className="font-mono font-bold text-emerald-400 bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-700">
+            <span>{t.autoRefreshIn}</span>
+            <span className="font-mono font-bold text-emerald-400 bg-slate-950 px-2.5 py-0.5 rounded-md border border-slate-800">
               {refreshSecondsLeft}s
             </span>
           </div>
         </div>
 
-        {/* The Email Display Box */}
+        {/* The Mail Display Box with GREEN Email Copy Button */}
         <div className="relative mb-6">
-          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-2.5 sm:p-3 rounded-2xl bg-slate-950/90 border border-slate-700/80 focus-within:border-emerald-500/60 transition-all shadow-inner">
-            <div className="flex-1 flex items-center gap-3 px-3 py-2 overflow-hidden">
+          <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 p-3 sm:p-3.5 rounded-2xl bg-slate-950/95 border border-slate-800 focus-within:border-emerald-500/60 transition-all shadow-inner">
+            <div className="flex-1 flex items-center gap-3 px-2 overflow-hidden">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
                 <Shield className="w-5 h-5" />
               </div>
-              <div className="overflow-hidden flex-1 text-left">
-                <span className="text-xs text-slate-400 block font-sans">Temporary Email Address:</span>
+              <div className="overflow-hidden flex-1 text-start">
+                <span className="text-[11px] text-slate-400 block">{t.emailLabel}</span>
                 <input
                   type="text"
                   readOnly
                   value={emailAddress}
-                  className="w-full bg-transparent font-mono-code font-bold text-base sm:text-lg md:text-xl text-emerald-400 outline-none select-all truncate cursor-pointer tracking-wide"
+                  className="w-full bg-transparent font-mono-code font-bold text-base sm:text-lg text-emerald-400 outline-none select-all truncate cursor-pointer tracking-wide"
                   onClick={handleCopy}
-                  title="Click to copy"
+                  title="انقر للنسخ"
                 />
               </div>
             </div>
 
-            {/* Quick Action buttons in display */}
+            {/* Quick Actions in Display Bar (Green Copy Button) */}
             <div className="flex items-center gap-2 justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
               <button
-                id="btn-copy-email-main"
+                id="btn-copy-email-green"
                 onClick={handleCopy}
                 disabled={isLoading || !account}
-                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all shadow-lg active:scale-95 ${
+                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg active:scale-95 ${
                   copied
-                    ? 'bg-emerald-500 text-slate-950 shadow-emerald-500/30'
+                    ? 'bg-emerald-400 text-slate-950 shadow-emerald-500/30'
                     : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-600/20'
                 }`}
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span>{copied ? 'Copied' : 'Copy Email'}</span>
+                <span>{copied ? t.copied : t.copyEmail}</span>
               </button>
 
               <button
-                id="btn-qr-modal-open"
+                id="btn-qr-code-open"
                 onClick={onOpenQR}
                 disabled={isLoading || !account}
-                title="Show Phone QR Code"
+                title={t.qrCodeTitle}
                 className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all"
               >
                 <QrCode className="w-5 h-5" />
@@ -175,59 +177,45 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
           </div>
         </div>
 
-        {/* 4 Core Action Buttons Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
-          {/* 1. Copy Button */}
+        {/* 3 Core Action Buttons Bar (Strict Reference Match) */}
+        {/* Blue: "بريد جديد" | Outlined Yellow: "تحديث" | Outlined Red: "حذف" */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Blue Button: "بريد جديد" */}
           <button
-            id="btn-action-copy"
-            onClick={handleCopy}
-            disabled={isLoading || !account}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-emerald-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
-          >
-            {copied ? (
-              <Check className="w-4 h-4 text-emerald-400" />
-            ) : (
-              <Copy className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-            )}
-            <span>{copied ? 'Copied' : 'Copy Email'}</span>
-          </button>
-
-          {/* 2. Refresh Inbox */}
-          <button
-            id="btn-action-refresh"
-            onClick={onRefresh}
-            disabled={isRefreshing || isLoading}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-teal-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
-          >
-            <RefreshCw className={`w-4 h-4 text-teal-400 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Inbox'}</span>
-          </button>
-
-          {/* 3. Change Email (Custom or Random) */}
-          <button
-            id="btn-action-change"
+            id="btn-action-new-email"
             onClick={handleOpenCustomModal}
             disabled={isLoading}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-amber-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
+            className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-lg shadow-blue-900/30 transition-all active:scale-95"
           >
-            <Edit3 className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span>Change Email</span>
+            <PlusCircle className="w-4 h-4" />
+            <span>{t.btnNewEmail}</span>
           </button>
 
-          {/* 4. Delete Email */}
+          {/* Outlined Yellow Button: "تحديث" */}
           <button
-            id="btn-action-delete"
+            id="btn-action-refresh-yellow"
+            onClick={onRefresh}
+            disabled={isRefreshing || isLoading}
+            className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-transparent hover:bg-amber-500/10 text-amber-300 border-2 border-amber-400/80 font-bold text-sm transition-all active:scale-95"
+          >
+            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-amber-400' : ''}`} />
+            <span>{isRefreshing ? 'جاري التحديث...' : t.btnRefresh}</span>
+          </button>
+
+          {/* Outlined Red Button: "حذف" */}
+          <button
+            id="btn-action-delete-red"
             onClick={onDeleteEmail}
             disabled={isLoading}
-            className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 text-slate-200 hover:text-rose-200 border border-slate-700/80 hover:border-rose-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
+            className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-transparent hover:bg-rose-500/10 text-rose-400 border-2 border-rose-500/80 font-bold text-sm transition-all active:scale-95"
           >
-            <Trash2 className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
-            <span>Delete & New</span>
+            <Trash2 className="w-4 h-4" />
+            <span>{t.btnDelete}</span>
           </button>
         </div>
 
         {/* Auto Refresh Progress bar */}
-        <div className="mt-4 w-full bg-slate-950 rounded-full h-1 overflow-hidden">
+        <div className="mt-5 w-full bg-slate-950 rounded-full h-1 overflow-hidden">
           <motion.div
             className="bg-gradient-to-r from-emerald-500 to-teal-400 h-full"
             initial={{ width: '0%' }}
@@ -237,50 +225,46 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
         </div>
       </div>
 
-      {/* Change / Custom Email Modal */}
+      {/* Custom Email Creation Modal */}
       {showCustomModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             onClick={() => !isChanging && setShowCustomModal(false)}
           />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-md bg-slate-900 border border-slate-700/90 rounded-3xl p-6 shadow-2xl z-10"
+            className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl z-10 text-start"
           >
-            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-                  <Edit3 className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">Custom Email Address</h3>
-                  <p className="text-xs text-slate-400">Choose a custom username or generate a random address</p>
-                </div>
+            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-slate-800">
+              <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
+                <PlusCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white">{t.customModalTitle}</h3>
+                <p className="text-xs text-slate-400">{t.customModalSubtitle}</p>
               </div>
             </div>
 
             <form onSubmit={handleApplyCustomEmail} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Username:
+                  {t.usernameLabel}
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={customUsername}
-                    onChange={(e) => setCustomUsername(e.target.value)}
-                    placeholder="e.g. myname, test.user, john"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none placeholder-slate-600 text-left"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={customUsername}
+                  onChange={(e) => setCustomUsername(e.target.value)}
+                  placeholder="مثال: myname, test.user, john"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none placeholder-slate-600 text-start"
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Select Domain:
+                  {t.domainLabel}
                 </label>
                 <div className="relative">
                   <select
@@ -297,7 +281,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                       <option value="inboxbear.com">@inboxbear.com</option>
                     )}
                   </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
                 </div>
               </div>
 
@@ -316,10 +300,10 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                 <button
                   type="submit"
                   disabled={isChanging}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
                   {isChanging ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  <span>Save Custom Email</span>
+                  <span>{t.saveCustom}</span>
                 </button>
 
                 <button
@@ -329,7 +313,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                   className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition-all flex items-center justify-center gap-1.5"
                 >
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>Random</span>
+                  <span>{t.randomEmail}</span>
                 </button>
               </div>
 
@@ -338,7 +322,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                 onClick={() => setShowCustomModal(false)}
                 className="w-full text-center text-xs text-slate-400 hover:text-slate-200 pt-1"
               >
-                Cancel
+                {t.cancel}
               </button>
             </form>
           </motion.div>
