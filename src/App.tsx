@@ -23,11 +23,9 @@ import {
   MessageHeader, 
   SiteSettings 
 } from './types';
-import { MultiMailService } from './services/multiMailService';
+import { MailGwService } from './services/mailGw';
 import { StorageService } from './services/storage';
-import { SupabaseService } from './services/supabase';
 import { playNotificationSound } from './utils/audio';
-import { getCurrentLanguage, setAppLanguage, LanguageOption, t } from './utils/i18n';
 
 export default function App() {
   // Navigation & Page State
@@ -35,10 +33,7 @@ export default function App() {
   const [selectedPostSlug, setSelectedPostSlug] = useState<string | null>(null);
   const [selectedPageSlug, setSelectedPageSlug] = useState<string | null>(null);
 
-  // i18n Language State
-  const [currentLang, setCurrentLang] = useState<LanguageOption>(() => getCurrentLanguage());
-
-  // Email & MultiMail Service State
+  // Email & Mail.gw State
   const [account, setAccount] = useState<Account | null>(null);
   const [domains, setDomains] = useState<DomainItem[]>([]);
   const [messages, setMessages] = useState<(MessageHeader | MessageDetail)[]>([]);
@@ -46,10 +41,10 @@ export default function App() {
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
-  // Loading & Active Countdown Timer States (e.g. 600s -> 09:59 format)
+  // Loading & Timer States
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [refreshSecondsLeft, setRefreshSecondsLeft] = useState(600);
+  const [refreshSecondsLeft, setRefreshSecondsLeft] = useState(10);
 
   // Theme & Site Data
   const [theme, setTheme] = useState<'dark' | 'light'>(() => StorageService.getTheme());
@@ -59,25 +54,23 @@ export default function App() {
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => StorageService.getBlogPosts());
   const [customPages, setCustomPages] = useState<CustomPage[]>(() => StorageService.getCustomPages());
 
+  // Ref to track previous message count for audio chime
   const prevMsgCountRef = useRef(0);
 
   // -------------------------------------------------------------
-  // INITIALIZATION: Language, Domains, Account, & Supabase VIP Check
+  // INITIALIZATION: Load Domains & Create/Load Account
   // -------------------------------------------------------------
   useEffect(() => {
     let isMounted = true;
 
     async function initApp() {
       setIsLoading(true);
-      // Ensure document direction (RTL/LTR) is initialized
-      setAppLanguage(currentLang.code);
-
       try {
-        // 1. Fetch available domains from multi-provider engine
-        const fetchedDomains = await MultiMailService.getDomains();
+        // 1. Fetch available domains
+        const fetchedDomains = await MailGwService.getDomains();
         if (isMounted) setDomains(fetchedDomains);
 
-        // 2. Load stored account or create a new one
+        // 2. Load stored account or create a fresh one
         const storedAccount = StorageService.getAccount();
         if (storedAccount && storedAccount.address && storedAccount.token) {
           if (isMounted) {
@@ -85,20 +78,12 @@ export default function App() {
             await fetchMessagesForAccount(storedAccount);
           }
         } else {
-          const { account: newAcc } = await MultiMailService.createAccount();
+          // Create a new fresh account
+          const { account: newAcc } = await MailGwService.createAccount();
           if (isMounted) {
             setAccount(newAcc);
             StorageService.saveAccount(newAcc);
             await fetchMessagesForAccount(newAcc);
-          }
-        }
-
-        // 3. Check Supabase VIP status if account exists
-        if (storedAccount?.address) {
-          const isVip = await SupabaseService.checkSubscriberStatus(storedAccount.address);
-          if (isVip && isMounted) {
-            setIsPremium(true);
-            StorageService.setPremium(true);
           }
         }
       } catch (err) {
@@ -110,6 +95,7 @@ export default function App() {
 
     initApp();
 
+    // Safely check pathname and search/hash parameters
     const pathname = (window.location.pathname || '').toLowerCase().replace(/\/$/, '');
     const hash = (window.location.hash || '').toLowerCase();
     const searchParams = new URLSearchParams(window.location.search || '');
@@ -141,12 +127,6 @@ export default function App() {
     };
   }, []);
 
-  // Language Change Handler
-  const handleLanguageChange = (lang: LanguageOption) => {
-    const updated = setAppLanguage(lang.code);
-    setCurrentLang(updated);
-  };
-
   // -------------------------------------------------------------
   // THEME EFFECT
   // -------------------------------------------------------------
@@ -169,7 +149,7 @@ export default function App() {
   };
 
   // -------------------------------------------------------------
-  // ACTIVE COUNTDOWN TIMER (Counts down from 10 mins e.g. 09:59)
+  // AUTO REFRESH TIMER (Countdown from 10s to 0)
   // -------------------------------------------------------------
   useEffect(() => {
     if (!account) return;
@@ -177,22 +157,19 @@ export default function App() {
     const timer = setInterval(() => {
       setRefreshSecondsLeft((prev) => {
         if (prev <= 1) {
+          // Trigger message check
           handleSilentRefresh();
-          return 600; // Reset to 10 minutes (600 seconds)
-        }
-        // Poll every 10 seconds silently
-        if (prev % 10 === 0) {
-          handleSilentRefresh();
+          return settings.autoRefreshIntervalSec || 10;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [account]);
+  }, [account, settings.autoRefreshIntervalSec]);
 
   // -------------------------------------------------------------
-  // FETCH MESSAGES
+  // FETCH MESSAGES (Combining mail.gw & local messages)
   // -------------------------------------------------------------
   const fetchMessagesForAccount = async (targetAccount?: Account | null) => {
     const currentAcc = targetAccount || account;
@@ -200,15 +177,28 @@ export default function App() {
 
     try {
       let remoteMessages: MessageHeader[] = [];
-      if (currentAcc.token) {
-        remoteMessages = await MultiMailService.getMessages(currentAcc.token);
+      if (currentAcc.token && !currentAcc.token.startsWith('local_')) {
+        try {
+          remoteMessages = await MailGwService.getMessages(currentAcc.token);
+        } catch (err: any) {
+          // If token expired, recreate
+          if (err.message === 'UNAUTHORIZED') {
+            const fresh = await MailGwService.createAccount();
+            setAccount(fresh.account);
+            StorageService.saveAccount(fresh.account);
+            return;
+          }
+        }
       }
 
+      // Merge with local simulated messages for this address
       const localMsgs = StorageService.getLocalMessages(currentAcc.address);
       const combined = [...localMsgs, ...remoteMessages.filter(rm => !localMsgs.some(lm => lm.id === rm.id))];
 
+      // Sort by newest first
       combined.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
+      // Check if new message arrived -> play chime sound!
       if (combined.length > prevMsgCountRef.current && settings.soundEnabled && prevMsgCountRef.current > 0) {
         playNotificationSound();
       }
@@ -227,22 +217,22 @@ export default function App() {
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
+    setRefreshSecondsLeft(settings.autoRefreshIntervalSec || 10);
     await fetchMessagesForAccount(account);
     setIsRefreshing(false);
   };
 
   // -------------------------------------------------------------
-  // CHANGE EMAIL
+  // CHANGE EMAIL (Custom Prefix & Domain OR Random)
   // -------------------------------------------------------------
   const handleChangeEmail = async (customUser?: string, customDomain?: string) => {
     setIsLoading(true);
     try {
-      const { account: newAcc } = await MultiMailService.createAccount(customUser, customDomain);
+      const { account: newAcc } = await MailGwService.createAccount(customUser, customDomain);
       setAccount(newAcc);
       StorageService.saveAccount(newAcc);
       setMessages([]);
       prevMsgCountRef.current = 0;
-      setRefreshSecondsLeft(600);
       await fetchMessagesForAccount(newAcc);
     } catch (err) {
       console.error('Change email error:', err);
@@ -258,16 +248,15 @@ export default function App() {
     if (!account) return;
     setIsLoading(true);
     try {
-      if (account.token) {
-        await MultiMailService.deleteAccount(account.id, account.token);
+      if (account.token && !account.token.startsWith('local_')) {
+        await MailGwService.deleteAccount(account.id, account.token);
       }
       StorageService.clearAccount();
-      const { account: freshAcc } = await MultiMailService.createAccount();
+      const { account: freshAcc } = await MailGwService.createAccount();
       setAccount(freshAcc);
       StorageService.saveAccount(freshAcc);
       setMessages([]);
       prevMsgCountRef.current = 0;
-      setRefreshSecondsLeft(600);
       await fetchMessagesForAccount(freshAcc);
     } catch (err) {
       console.error('Delete email error:', err);
@@ -280,6 +269,7 @@ export default function App() {
   // SELECT & VIEW MESSAGE
   // -------------------------------------------------------------
   const handleSelectMessage = async (msgId: string) => {
+    // 1. Check if it's in local messages
     const local = StorageService.getLocalMessages().find(m => m.id === msgId);
     if (local) {
       setSelectedMessage(local);
@@ -287,11 +277,13 @@ export default function App() {
       return;
     }
 
+    // 2. Fetch full detail from mail.gw
     if (account?.token) {
-      const detail = await MultiMailService.getMessageDetail(msgId, account.token);
+      const detail = await MailGwService.getMessageDetail(msgId, account.token);
       if (detail) {
         setSelectedMessage(detail);
         setIsMessageModalOpen(true);
+        // Mark as seen in messages state
         setMessages(prev => prev.map(m => m.id === msgId ? { ...m, seen: true } : m));
       }
     }
@@ -302,9 +294,11 @@ export default function App() {
   // -------------------------------------------------------------
   const handleDeleteMessage = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
+    // Delete local
     StorageService.deleteLocalMessage(id);
-    if (account?.token) {
-      await MultiMailService.deleteMessage(id, account.token);
+    // Delete remote if token exists
+    if (account?.token && !account.token.startsWith('local_')) {
+      await MailGwService.deleteMessage(id, account.token);
     }
     setMessages(prev => prev.filter(m => m.id !== id));
     if (selectedMessage?.id === id) {
@@ -316,8 +310,8 @@ export default function App() {
   const handleDeleteAllMessages = async () => {
     if (confirm('Are you sure you want to clear your inbox and delete all messages?')) {
       for (const msg of messages) {
-        if (account?.token) {
-          MultiMailService.deleteMessage(msg.id, account.token).catch(() => {});
+        if (account?.token && !account.token.startsWith('local_')) {
+          MailGwService.deleteMessage(msg.id, account.token).catch(() => {});
         }
         StorageService.deleteLocalMessage(msg.id);
       }
@@ -327,7 +321,7 @@ export default function App() {
   };
 
   // -------------------------------------------------------------
-  // SIMULATE / SEND TEST EMAIL
+  // SIMULATE / SEND TEST EMAIL (Immediate OTP test delivery)
   // -------------------------------------------------------------
   const handleSendTestEmail = (templateKey: string = 'telegram') => {
     if (!account) return;
@@ -400,6 +394,9 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------
+  // CUSTOM PAGES & BLOG NAVIGATION
+  // -------------------------------------------------------------
   const handleOpenCustomPage = (slug: string) => {
     setSelectedPageSlug(slug);
     setActiveTab('page');
@@ -411,6 +408,9 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // -------------------------------------------------------------
+  // ADS CONFIGURATION HELPERS
+  // -------------------------------------------------------------
   const headerAdSlot = adSlots.find(s => s.position === 'header');
   const sidebarAdSlot = adSlots.find(s => s.position === 'sidebar');
   const inboxBottomAdSlot = adSlots.find(s => s.position === 'inbox_bottom');
@@ -420,29 +420,30 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-      {/* 1. Centered Header with Logo & Language Dropdown Selector */}
+      {/* 1. Header */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         theme={theme}
         toggleTheme={toggleTheme}
         isPremium={isPremium}
-        currentLang={currentLang}
-        onLanguageChange={handleLanguageChange}
         customPages={customPages}
         onOpenCustomPage={handleOpenCustomPage}
       />
 
-      {/* 2. Top Leaderboard Banner */}
+      {/* 2. Top Leaderboard Banner (Under Header) - If not Premium & Enabled */}
       {!isPremium && settings.sectionsVisibility.adsHeader && headerAdSlot && headerAdSlot.enabled && (
         <AdBanner slot={headerAdSlot} position="header" />
       )}
 
-      {/* 3. Main Router */}
+      {/* 3. Main Body Route Router */}
       <main className="flex-1 w-full">
+        {/* ========================================================= */}
+        {/* TAB: HOME / INBOX */}
+        {/* ========================================================= */}
         {activeTab === 'home' && (
           <div>
-            {/* Hero Email Generator Card with Strict Matching Layout */}
+            {/* Hero Email Generator Card */}
             {settings.sectionsVisibility.hero && (
               <EmailGeneratorCard
                 account={account}
@@ -450,7 +451,6 @@ export default function App() {
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 refreshSecondsLeft={refreshSecondsLeft}
-                currentLang={currentLang}
                 onRefresh={handleManualRefresh}
                 onChangeEmail={handleChangeEmail}
                 onDeleteEmail={handleDeleteEmail}
@@ -458,15 +458,15 @@ export default function App() {
               />
             )}
 
-            {/* Main Content Layout */}
+            {/* Main Content Layout with Sidebar Banner Support */}
             <div className="w-full max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Center Inbox Area */}
               <div className={!isPremium && settings.sectionsVisibility.adsSidebar && sidebarAdSlot?.enabled ? 'lg:col-span-8' : 'lg:col-span-12'}>
                 {settings.sectionsVisibility.inbox && (
                   <InboxView
                     messages={messages}
                     isLoading={isLoading}
                     isRefreshing={isRefreshing}
-                    currentLang={currentLang}
                     onRefresh={handleManualRefresh}
                     onSelectMessage={handleSelectMessage}
                     onDeleteMessage={handleDeleteMessage}
@@ -475,11 +475,13 @@ export default function App() {
                   />
                 )}
 
+                {/* Inline Banner Under Inbox */}
                 {!isPremium && settings.sectionsVisibility.adsNative && inboxBottomAdSlot && inboxBottomAdSlot.enabled && (
                   <AdBanner slot={inboxBottomAdSlot} position="inbox_bottom" />
                 )}
               </div>
 
+              {/* Sidebar Ad (AdSense 300x250) */}
               {!isPremium && settings.sectionsVisibility.adsSidebar && sidebarAdSlot && sidebarAdSlot.enabled && (
                 <div className="lg:col-span-4 space-y-6 pt-6">
                   <AdBanner slot={sidebarAdSlot} position="sidebar" />
@@ -487,22 +489,23 @@ export default function App() {
               )}
             </div>
 
+            {/* Educational & Privacy Information Section */}
             {settings.sectionsVisibility.whyUs && (
               <InformationSection />
             )}
           </div>
         )}
 
+        {/* ========================================================= */}
+        {/* TAB: PREMIUM PRICING PAGE */}
+        {/* ========================================================= */}
         {activeTab === 'premium' && (
           <PremiumPage
             settings={settings}
             isPremium={isPremium}
-            onActivatePremium={async () => {
+            onActivatePremium={() => {
               setIsPremium(true);
               StorageService.setPremium(true);
-              if (account?.address) {
-                await SupabaseService.registerSubscriber(account.address, 'monthly');
-              }
             }}
             onCancelPremium={() => {
               setIsPremium(false);
@@ -512,6 +515,9 @@ export default function App() {
           />
         )}
 
+        {/* ========================================================= */}
+        {/* TAB: BLOG & ARTICLES */}
+        {/* ========================================================= */}
         {(activeTab === 'blog' || activeTab === 'post') && (
           <BlogSection
             posts={blogPosts}
@@ -524,6 +530,9 @@ export default function App() {
           />
         )}
 
+        {/* ========================================================= */}
+        {/* TAB: CUSTOM PAGE (Privacy, Terms, About, etc.) */}
+        {/* ========================================================= */}
         {activeTab === 'page' && currentPageObj && (
           <CustomPageView
             page={currentPageObj}
@@ -531,6 +540,9 @@ export default function App() {
           />
         )}
 
+        {/* ========================================================= */}
+        {/* TAB: ADMIN DASHBOARD */}
+        {/* ========================================================= */}
         {activeTab === 'admin' && (
           <AdminDashboard
             settings={settings}
@@ -558,10 +570,12 @@ export default function App() {
         )}
       </main>
 
+      {/* 4. Social Bar Ad (Adsterra Floating Toast) - If not Premium */}
       {!isPremium && settings.sectionsVisibility.adsNative && socialBarAdSlot && socialBarAdSlot.enabled && (
         <AdBanner slot={socialBarAdSlot} position="social_bar" />
       )}
 
+      {/* 5. Message Reader Modal */}
       <MessageModal
         message={selectedMessage}
         isOpen={isMessageModalOpen}
@@ -572,12 +586,14 @@ export default function App() {
         onDelete={handleDeleteMessage}
       />
 
+      {/* 6. QR Code Scanner Modal */}
       <QRCodeModal
         isOpen={isQRModalOpen}
         onClose={() => setIsQRModalOpen(false)}
         email={account?.address || ''}
       />
 
+      {/* 7. Footer */}
       <Footer
         setActiveTab={setActiveTab}
         customPages={customPages}
