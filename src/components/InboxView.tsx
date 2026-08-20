@@ -12,13 +12,11 @@ import {
   Sparkles
 } from 'lucide-react';
 import { MessageDetail, MessageHeader } from '../types';
-import { LanguageOption, t } from '../utils/i18n';
 
 interface InboxViewProps {
   messages: (MessageHeader | MessageDetail)[];
   isLoading: boolean;
   isRefreshing: boolean;
-  currentLang: LanguageOption;
   onRefresh: () => void;
   onSelectMessage: (id: string) => void;
   onDeleteMessage: (id: string, e: React.MouseEvent) => void;
@@ -30,7 +28,6 @@ export const InboxView: React.FC<InboxViewProps> = ({
   messages,
   isLoading,
   isRefreshing,
-  currentLang,
   onRefresh,
   onSelectMessage,
   onDeleteMessage,
@@ -82,16 +79,16 @@ export const InboxView: React.FC<InboxViewProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-white">{t('liveInbox', currentLang.code)}</h3>
+                <h3 className="text-lg font-bold text-white">Live Inbox</h3>
                 {messages.length > 0 && (
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                    {messages.length} {t('messages', currentLang.code)}
+                    {messages.length} {messages.length === 1 ? 'message' : 'messages'}
                   </span>
                 )}
                 {unreadCount > 0 && (
                   <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-                    {unreadCount} {t('unread', currentLang.code)}
+                    {unreadCount} unread
                   </span>
                 )}
               </div>
@@ -112,7 +109,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 title="Send a sample email to test the inbox"
               >
                 <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                <span>{t('sendTestEmail', currentLang.code)}</span>
+                <span>Send Test Email</span>
               </button>
 
               {showTestMenu && (
@@ -168,7 +165,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               <input
                 type="text"
-                placeholder={t('searchMessages', currentLang.code)}
+                placeholder="Search messages..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500"
@@ -318,8 +315,9 @@ export const InboxView: React.FC<InboxViewProps> = ({
               })}
             </AnimatePresence>
           ) : (
-            /* Animated Empty State */
+            /* Animated Empty State / Scanner radar */
             <div className="py-14 px-4 flex flex-col items-center justify-center text-center">
+              {/* Radar pulse animation */}
               <div className="relative mb-5 flex items-center justify-center">
                 <div className="absolute w-24 h-24 rounded-full bg-emerald-500/10 animate-ping" />
                 <div className="absolute w-16 h-16 rounded-full bg-emerald-500/20 animate-pulse" />
@@ -329,10 +327,10 @@ export const InboxView: React.FC<InboxViewProps> = ({
               </div>
 
               <h4 className="text-base sm:text-lg font-bold text-white mb-1.5">
-                {t('emptyInboxTitle', currentLang.code)}
+                Your inbox is currently empty
               </h4>
               <p className="text-xs sm:text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-                {t('emptyInboxSub', currentLang.code)}
+                Waiting for incoming emails... Messages and activation codes will appear here automatically as soon as they arrive.
               </p>
 
               {/* Instant Test Button */}
@@ -342,7 +340,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-emerald-900/30 transition-all active:scale-95"
               >
                 <Sparkles className="w-4 h-4 text-emerald-200" />
-                <span>{t('sendTestEmail', currentLang.code)}</span>
+                <span>Send Instant Test Email</span>
               </button>
             </div>
           )}
@@ -352,7 +350,7 @@ export const InboxView: React.FC<InboxViewProps> = ({
         <div className="p-3.5 bg-slate-950 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 px-4 sm:px-6">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Server Status: Operational</span>
+            <span>Server Status: Connected & Operational</span>
           </div>
 
           <div className="flex items-center gap-2">
