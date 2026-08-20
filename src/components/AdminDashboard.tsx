@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import { 
   Lock, 
-  Unlock, 
   LayoutDashboard, 
   Radio, 
   BookOpen, 
@@ -18,12 +17,7 @@ import {
   Sparkles, 
   Save, 
   LogOut, 
-  ArrowLeft, 
-  ShieldCheck,
-  Code,
-  Globe,
-  Bell,
-  RefreshCw
+  ShieldCheck
 } from 'lucide-react';
 import { 
   AdSlotConfig, 
@@ -77,11 +71,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     slug: '',
     excerpt: '',
     content: '',
-    category: 'الخصوصية والأمان',
-    authorName: 'فريق التحرير',
-    readTime: '4 دقائق',
+    category: 'Privacy & Security',
+    authorName: 'Editorial Team',
+    readTime: '4 min read',
     coverImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80',
-    tags: 'بريد_مؤقت, خصوصية',
+    tags: 'temp_mail, privacy',
     published: true,
   });
 
@@ -100,8 +94,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [localSettings, setLocalSettings] = useState<SiteSettings>(settings);
   const [localAdSlots, setLocalAdSlots] = useState<AdSlotConfig[]>(adSlots);
 
-  // Trigger temporary success notification
-  const triggerSuccess = (msg?: string) => {
+  // Trigger temporary notification
+  const triggerSuccess = () => {
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 2500);
   };
@@ -116,7 +110,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setIsAuthenticated(true);
       setAuthError('');
     } else {
-      setAuthError('بيانات الدخول غير صحيحة');
+      setAuthError('Invalid credentials');
     }
   };
 
@@ -160,11 +154,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       slug: '',
       excerpt: '',
       content: '',
-      category: 'الخصوصية والأمان',
-      authorName: 'فريق التحرير',
-      readTime: '4 دقائق',
+      category: 'Privacy & Security',
+      authorName: 'Editorial Team',
+      readTime: '4 min read',
       coverImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80',
-      tags: 'بريد_مؤقت, خصوصية',
+      tags: 'temp_mail, privacy',
       published: true,
     });
     setIsEditingBlog(true);
@@ -190,7 +184,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleSavePostForm = (e: React.FormEvent) => {
     e.preventDefault();
     const tagArray = blogForm.tags.split(',').map(t => t.trim().replace(/^#/, '')).filter(Boolean);
-    const generatedSlug = blogForm.slug.trim() || blogForm.title.toLowerCase().replace(/[^a-z0-9\u0621-\u064A]+/g, '-');
+    const generatedSlug = blogForm.slug.trim() || blogForm.title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
     if (editingPostId) {
       // Update existing
@@ -220,7 +214,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         author: {
           name: blogForm.authorName,
           avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-          role: 'محرر تقني',
+          role: 'Tech Writer',
         },
         readTime: blogForm.readTime,
         coverImage: blogForm.coverImage,
@@ -237,7 +231,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeletePost = (id: string) => {
-    if (confirm('هل أنت متأكد من رغبتك في حذف هذا المقال نهائياً؟')) {
+    if (confirm('Are you sure you want to delete this article?')) {
       const filtered = blogPosts.filter(p => p.id !== id);
       onUpdateBlogPosts(filtered);
       triggerSuccess();
@@ -303,7 +297,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   const handleDeletePage = (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذه الصفحة؟')) {
+    if (confirm('Are you sure you want to delete this page?')) {
       const filtered = customPages.filter(p => p.id !== id);
       onUpdateCustomPages(filtered);
       triggerSuccess();
@@ -319,7 +313,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden"
+          className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden text-left"
         >
           <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
 
@@ -328,51 +322,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-800 to-slate-950 border border-slate-700 flex items-center justify-center text-emerald-400 mx-auto mb-3 shadow-lg">
               <Lock className="w-7 h-7" />
             </div>
-            <h2 className="text-2xl font-black text-white">لوحة تحكم المسؤول (Admin)</h2>
-            <p className="text-xs text-slate-400 mt-1">سجل الدخول لإدارة الإعلانات، المقالات، والسكاشن</p>
+            <h2 className="text-2xl font-black text-white">Admin Portal</h2>
+            <p className="text-xs text-slate-400 mt-1">Sign in to manage ad slots, articles, and site sections</p>
           </div>
 
           {/* Test Credentials Helper Card */}
           <div className="mb-6 p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-xs text-slate-200">
             <div className="flex items-center justify-between mb-2">
               <span className="font-bold text-emerald-400 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> بيانات الدخول الافتراضية للتجربة:
+                <Sparkles className="w-3.5 h-3.5" /> Demo Login Credentials:
               </span>
               <button
                 type="button"
                 onClick={handleQuickLogin}
-                className="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-bold text-[11px] hover:bg-emerald-400 transition-colors"
+                className="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-bold text-[11px] hover:bg-emerald-400 transition-colors"
               >
-                دخول فوري
+                Instant Login
               </button>
             </div>
-            <div className="font-mono text-[11px] space-y-1 bg-slate-950/70 p-2 rounded-xl border border-emerald-500/20 text-emerald-300 dir-ltr text-left">
+            <div className="font-mono text-[11px] space-y-1 bg-slate-950/70 p-2 rounded-xl border border-emerald-500/20 text-emerald-300 text-left">
               <div>Email: admin@tempmail.com</div>
-              <div>Pass: admin123</div>
+              <div>Password: admin123</div>
             </div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">البريد الإلكتروني:</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Email:</label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                dir="ltr"
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-200 text-left focus:outline-none focus:border-emerald-500 font-mono"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">كلمة المرور:</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Password:</label>
               <input
                 type="password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                dir="ltr"
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-200 text-left focus:outline-none focus:border-emerald-500 font-mono"
               />
             </div>
@@ -387,7 +379,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               type="submit"
               className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-lg transition-all active:scale-95"
             >
-              تسجيل الدخول إلى لوحة التحكم
+              Sign In to Admin Dashboard
             </button>
 
             <button
@@ -395,7 +387,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               onClick={onBackToHome}
               className="w-full text-center text-xs text-slate-500 hover:text-slate-300 pt-2"
             >
-              العودة إلى الصفحة الرئيسية
+              Back to Home
             </button>
           </form>
         </motion.div>
@@ -409,14 +401,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   return (
     <div className="w-full max-w-6xl mx-auto my-6 px-4 sm:px-6">
       {/* Top Bar with Logout & Back */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-900 border border-slate-800 mb-6 shadow-xl">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-900 border border-slate-800 mb-6 shadow-xl text-left">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
             <LayoutDashboard className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base sm:text-lg font-black text-white">لوحة تحكم المدير (Admin Portal)</h2>
-            <p className="text-xs text-slate-400">إدارة الإعلانات، المقالات، الصفحات، والسكاشن</p>
+            <h2 className="text-base sm:text-lg font-black text-white">Admin Dashboard</h2>
+            <p className="text-xs text-slate-400">Manage Adsterra & AdSense ads, articles, pages, and site settings</p>
           </div>
         </div>
 
@@ -428,7 +420,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-bold"
             >
               <Check className="w-4 h-4" />
-              <span>تم حفظ التعديلات بنجاح!</span>
+              <span>Saved</span>
             </motion.div>
           )}
 
@@ -437,7 +429,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-bold transition-colors"
           >
             <Eye className="w-3.5 h-3.5 text-emerald-400" />
-            <span>معاينة الموقع</span>
+            <span>Preview Site</span>
           </button>
 
           <button
@@ -445,7 +437,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-bold transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
-            <span>خروج</span>
+            <span>Logout</span>
           </button>
         </div>
       </div>
@@ -461,7 +453,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }`}
         >
           <LayoutDashboard className="w-4 h-4" />
-          <span>الإحصائيات العامة</span>
+          <span>Overview & Stats</span>
         </button>
 
         <button
@@ -473,7 +465,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }`}
         >
           <Radio className="w-4 h-4" />
-          <span>إدارة الإعلانات (Adsterra / AdSense)</span>
+          <span>Ad Management (Adsterra / AdSense)</span>
         </button>
 
         <button
@@ -485,7 +477,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>إدارة المدونة والمقالات ({blogPosts.length})</span>
+          <span>Blog Articles ({blogPosts.length})</span>
         </button>
 
         <button
@@ -497,7 +489,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>الصفحات والقوائم ({customPages.length})</span>
+          <span>Pages & Navigation ({customPages.length})</span>
         </button>
 
         <button
@@ -509,7 +501,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }`}
         >
           <Settings className="w-4 h-4" />
-          <span>سكاشن وإعدادات الموقع</span>
+          <span>Site Sections & SEO</span>
         </button>
 
         <button
@@ -521,7 +513,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }`}
         >
           <DollarSign className="w-4 h-4" />
-          <span>باقات Premium و Stripe</span>
+          <span>Premium & Stripe</span>
         </button>
       </div>
 
@@ -529,31 +521,31 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 1. OVERVIEW & STATS */}
       {/* ------------------------------------------------------------- */}
       {adminTab === 'overview' && (
-        <div className="space-y-6">
+        <div className="space-y-6 text-left">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800">
-              <span className="text-xs text-slate-400 block mb-1">إجمالي الإيميلات المنشأة:</span>
+              <span className="text-xs text-slate-400 block mb-1">Generated Emails:</span>
               <span className="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">
                 {stats.emailsCreated.toLocaleString()}
               </span>
             </div>
 
             <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800">
-              <span className="text-xs text-slate-400 block mb-1">الرسائل المستقبلة:</span>
+              <span className="text-xs text-slate-400 block mb-1">Received Messages:</span>
               <span className="text-2xl sm:text-3xl font-black text-teal-400 font-mono">
                 {stats.messagesReceived.toLocaleString()}
               </span>
             </div>
 
             <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800">
-              <span className="text-xs text-slate-400 block mb-1">مرات ظهور الإعلانات (Impressions):</span>
+              <span className="text-xs text-slate-400 block mb-1">Ad Impressions:</span>
               <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono">
                 {stats.adImpressions.toLocaleString()}
               </span>
             </div>
 
             <div className="p-5 rounded-3xl bg-slate-900 border border-slate-800">
-              <span className="text-xs text-slate-400 block mb-1">المستخدمين النشطين (Live Sessions):</span>
+              <span className="text-xs text-slate-400 block mb-1">Active Sessions:</span>
               <span className="text-2xl sm:text-3xl font-black text-indigo-400 font-mono">
                 {stats.activeUsers.toLocaleString()}
               </span>
@@ -565,10 +557,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
               <h3 className="font-bold text-white text-base mb-3 flex items-center gap-2">
                 <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                <span>حالة خوادم البريد (mail.gw)</span>
+                <span>mail.gw Infrastructure Status</span>
               </h3>
               <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-                الربط مع بروتوكول mail.gw API يعمل بكفاءة 100% مع استقبال رسائل الـ OTP فوري ودعم النطاقات النشطة.
+                Integration with mail.gw API is 100% operational with instant OTP extraction and domain pooling active.
               </p>
               <div className="p-3 rounded-2xl bg-slate-950 border border-slate-800 text-xs font-mono text-emerald-400">
                 Status: Operational (200 OK) | Latency: 42ms
@@ -578,14 +570,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
               <h3 className="font-bold text-white text-base mb-3 flex items-center gap-2">
                 <Radio className="w-5 h-5 text-amber-400" />
-                <span>شبكات الإعلانات المفعلة</span>
+                <span>Configured Ad Slots</span>
               </h3>
               <div className="space-y-2 text-xs">
                 {localAdSlots.map((slot) => (
                   <div key={slot.id} className="flex items-center justify-between p-2 rounded-xl bg-slate-950 border border-slate-800">
                     <span className="text-slate-300 font-semibold">{slot.name}</span>
                     <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${slot.enabled ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-500'}`}>
-                      {slot.enabled ? 'مفعل' : 'معطل'}
+                      {slot.enabled ? 'Enabled' : 'Disabled'}
                     </span>
                   </div>
                 ))}
@@ -599,18 +591,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 2. AD MANAGEMENT (ADSTERRA & ADSENSE) */}
       {/* ------------------------------------------------------------- */}
       {adminTab === 'ads' && (
-        <div className="space-y-6">
+        <div className="space-y-6 text-left">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-5 rounded-3xl bg-slate-900 border border-slate-800">
             <div>
-              <h3 className="text-lg font-bold text-white">إدارة شفرات وبنرات الإعلانات (Adsterra & AdSense)</h3>
-              <p className="text-xs text-slate-400">تحكم كامل في تفعيل أو تعطيل الأماكن الإعلانية وتضمين أكواد JS/HTML المخصصة</p>
+              <h3 className="text-lg font-bold text-white">Adsterra & AdSense Banners</h3>
+              <p className="text-xs text-slate-400">Control ad placements, scripts, titles, and target URLs</p>
             </div>
             <button
               onClick={handleSaveAdSlots}
               className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
             >
               <Save className="w-4 h-4" />
-              <span>حفظ جميع الإعلانات</span>
+              <span>Save Ad Configuration</span>
             </button>
           </div>
 
@@ -627,7 +619,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
                     <div>
                       <h4 className="font-bold text-white text-sm sm:text-base">{slot.name}</h4>
-                      <span className="text-[11px] text-slate-400 font-mono">الموقع: {slot.position}</span>
+                      <span className="text-[11px] text-slate-400 font-mono">Position: {slot.position}</span>
                     </div>
                   </div>
 
@@ -637,9 +629,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       onChange={(e) => handleUpdateSlotField(slot.id, 'provider', e.target.value)}
                       className="bg-slate-950 border border-slate-700 text-slate-200 text-xs rounded-xl px-3 py-1.5 focus:outline-none"
                     >
-                      <option value="adsterra">شبكة Adsterra</option>
+                      <option value="adsterra">Adsterra Network</option>
                       <option value="adsense">Google AdSense</option>
-                      <option value="custom">بنر مخصص (Custom HTML)</option>
+                      <option value="custom">Custom Banner</option>
                     </select>
 
                     <button
@@ -652,7 +644,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       }`}
                     >
                       {slot.enabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      <span>{slot.enabled ? 'مفعل ويعرض بالموقع' : 'معطل مؤقتاً'}</span>
+                      <span>{slot.enabled ? 'Active' : 'Disabled'}</span>
                     </button>
                   </div>
                 </div>
@@ -660,14 +652,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Code Snippet input */}
                 <div>
                   <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center justify-between">
-                    <span>شفرة الإعلان (HTML / Script / iframe Code):</span>
-                    <span className="text-[11px] text-slate-500 font-mono">يدعم كود Adsterra المباشر أو وسم AdSense ins</span>
+                    <span>Ad Snippet (Script / iframe / HTML Code):</span>
+                    <span className="text-[11px] text-slate-500 font-mono">Supports Adsterra JS script or AdSense ins tag</span>
                   </label>
                   <textarea
                     rows={3}
                     value={slot.codeSnippet}
                     onChange={(e) => handleUpdateSlotField(slot.id, 'codeSnippet', e.target.value)}
-                    dir="ltr"
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs font-mono text-emerald-400 placeholder-slate-600 focus:outline-none focus:border-emerald-500 text-left"
                     placeholder="<script> ... </script>"
                   />
@@ -676,7 +667,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 {/* Custom Banner Title & Target URL */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-1">عنوان البنر الإعلاني (للعرض المباشر):</label>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1">Banner Title:</label>
                     <input
                       type="text"
                       value={slot.customTitle || ''}
@@ -686,13 +677,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-400 mb-1">رابط الوجهة (Target URL):</label>
+                    <label className="block text-xs font-semibold text-slate-400 mb-1">Target URL:</label>
                     <input
                       type="text"
                       value={slot.customTargetUrl || ''}
                       onChange={(e) => handleUpdateSlotField(slot.id, 'customTargetUrl', e.target.value)}
-                      dir="ltr"
-                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono text-left focus:outline-none focus:border-emerald-500"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -706,18 +696,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 3. BLOG MANAGEMENT */}
       {/* ------------------------------------------------------------- */}
       {adminTab === 'blog' && (
-        <div className="space-y-6">
+        <div className="space-y-6 text-left">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-5 rounded-3xl bg-slate-900 border border-slate-800">
             <div>
-              <h3 className="text-lg font-bold text-white">إدارة المدونة والمقالات ({blogPosts.length})</h3>
-              <p className="text-xs text-slate-400">انشر مقالات جديدة لتحسين الظهور في محركات البحث (SEO) وتوعية المستخدمين</p>
+              <h3 className="text-lg font-bold text-white">Blog Management ({blogPosts.length})</h3>
+              <p className="text-xs text-slate-400">Publish security guides and tech articles to boost search visibility</p>
             </div>
             <button
               onClick={handleOpenNewPost}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span>إضافة مقال جديد</span>
+              <span>Add New Article</span>
             </button>
           </div>
 
@@ -738,12 +728,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <span className="text-[11px] px-2 py-0.5 rounded bg-slate-800 text-emerald-400 font-semibold">
                         {post.category}
                       </span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${post.published ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
-                        {post.published ? 'منشور' : 'مسودة'}
+                      <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${post.published ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}`}>
+                        {post.published ? 'Published' : 'Draft'}
                       </span>
                     </div>
                     <h4 className="font-bold text-white text-sm truncate">{post.title}</h4>
-                    <span className="text-xs text-slate-400 font-mono">{post.readTime} | {new Date(post.createdAt).toLocaleDateString('ar-SA')}</span>
+                    <span className="text-xs text-slate-400 font-mono">{post.readTime} | {new Date(post.createdAt).toLocaleDateString('en-US')}</span>
                   </div>
                 </div>
 
@@ -751,7 +741,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <button
                     onClick={() => handleEditPost(post)}
                     className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
-                    title="تعديل المقال"
+                    title="Edit article"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
@@ -759,7 +749,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <button
                     onClick={() => handleDeletePost(post.id)}
                     className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
-                    title="حذف المقال"
+                    title="Delete article"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -775,15 +765,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 max-h-[90vh] overflow-y-auto"
+                className="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 max-h-[90vh] overflow-y-auto text-left"
               >
                 <h3 className="text-xl font-bold text-white mb-4">
-                  {editingPostId ? 'تعديل المقال' : 'كتابة ونشر مقال جديد'}
+                  {editingPostId ? 'Edit Article' : 'New Article'}
                 </h3>
 
                 <form onSubmit={handleSavePostForm} className="space-y-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">عنوان المقال:</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Article Title:</label>
                     <input
                       type="text"
                       required
@@ -795,7 +785,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">القسم / التصنيف:</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Category:</label>
                       <input
                         type="text"
                         required
@@ -806,7 +796,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">وقت القراءة المقدر:</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Read Time:</label>
                       <input
                         type="text"
                         required
@@ -818,7 +808,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">مقتطف مختصر (Excerpt):</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Excerpt:</label>
                     <textarea
                       rows={2}
                       required
@@ -829,7 +819,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">محتوى المقال الكامل:</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Content (Markdown):</label>
                     <textarea
                       rows={6}
                       required
@@ -841,18 +831,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">رابط صورة الغلاف (URL):</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Cover Image URL:</label>
                       <input
                         type="text"
                         value={blogForm.coverImage}
                         onChange={(e) => setBlogForm({ ...blogForm, coverImage: e.target.value })}
-                        dir="ltr"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono text-left focus:outline-none focus:border-emerald-500"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-200 font-mono focus:outline-none focus:border-emerald-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">الوسوم (مفصولة بفاصلة):</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Tags (Comma-separated):</label>
                       <input
                         type="text"
                         value={blogForm.tags}
@@ -867,14 +856,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       type="submit"
                       className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md"
                     >
-                      {editingPostId ? 'حفظ التعديلات' : 'نشر المقال الآن'}
+                      {editingPostId ? 'Save Changes' : 'Publish Article'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditingBlog(false)}
                       className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm"
                     >
-                      إلغاء
+                      Cancel
                     </button>
                   </div>
                 </form>
@@ -888,18 +877,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 4. PAGES & NAVIGATION MANAGEMENT */}
       {/* ------------------------------------------------------------- */}
       {adminTab === 'pages' && (
-        <div className="space-y-6">
+        <div className="space-y-6 text-left">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-5 rounded-3xl bg-slate-900 border border-slate-800">
             <div>
-              <h3 className="text-lg font-bold text-white">إدارة الصفحات وروابط الهيدر والفوتر</h3>
-              <p className="text-xs text-slate-400">إضافة وتعديل صفحات مثل سياسة الخصوصية، شروط الاستخدام، أو صفحات جديدة مخصصة</p>
+              <h3 className="text-lg font-bold text-white">Pages & Navigation</h3>
+              <p className="text-xs text-slate-400">Add or modify static policy and informational pages</p>
             </div>
             <button
               onClick={handleOpenNewPage}
               className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
             >
               <Plus className="w-4 h-4" />
-              <span>إضافة صفحة جديدة</span>
+              <span>Add New Page</span>
             </button>
           </div>
 
@@ -912,11 +901,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span>Slug: /{page.slug}</span>
                     <span>•</span>
                     <span className={page.inHeader ? 'text-emerald-400 font-semibold' : 'text-slate-500'}>
-                      {page.inHeader ? 'ظاهر بالهيدر' : 'مخفي من الهيدر'}
+                      {page.inHeader ? 'Header Nav' : 'Hidden from Header'}
                     </span>
                     <span>•</span>
                     <span className={page.inFooter ? 'text-indigo-400 font-semibold' : 'text-slate-500'}>
-                      {page.inFooter ? 'ظاهر بالفوتر' : 'مخفي من الفوتر'}
+                      {page.inFooter ? 'Footer Links' : 'Hidden from Footer'}
                     </span>
                   </div>
                 </div>
@@ -947,16 +936,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl z-10"
+                className="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-3xl p-6 sm:p-8 shadow-2xl z-10 text-left"
               >
                 <h3 className="text-xl font-bold text-white mb-4">
-                  {editingPageId ? 'تعديل الصفحة' : 'إنشاء صفحة جديدة'}
+                  {editingPageId ? 'Edit Page' : 'New Page'}
                 </h3>
 
                 <form onSubmit={handleSavePageForm} className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">عنوان الصفحة:</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Page Title:</label>
                       <input
                         type="text"
                         required
@@ -967,21 +956,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">الرابط الفرعي (Slug):</label>
+                      <label className="block text-xs font-semibold text-slate-300 mb-1">Slug:</label>
                       <input
                         type="text"
                         required
                         value={pageForm.slug}
                         onChange={(e) => setPageForm({ ...pageForm, slug: e.target.value })}
                         placeholder="e.g. privacy-policy, api-docs"
-                        dir="ltr"
-                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-emerald-400 font-mono text-left focus:outline-none focus:border-emerald-500"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-emerald-400 font-mono focus:outline-none focus:border-emerald-500"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1">محتوى الصفحة (Markdown / Text):</label>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">Content (Markdown / Text):</label>
                     <textarea
                       rows={8}
                       required
@@ -999,7 +987,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         onChange={(e) => setPageForm({ ...pageForm, inHeader: e.target.checked })}
                         className="w-4 h-4 rounded text-emerald-600 focus:ring-0"
                       />
-                      <span>إظهار الرابط في الهيدر (Header Nav)</span>
+                      <span>Show in Header Navigation</span>
                     </label>
 
                     <label className="flex items-center gap-2 text-xs font-semibold text-slate-200 cursor-pointer">
@@ -1009,7 +997,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         onChange={(e) => setPageForm({ ...pageForm, inFooter: e.target.checked })}
                         className="w-4 h-4 rounded text-emerald-600 focus:ring-0"
                       />
-                      <span>إظهار الرابط في الفوتر (Footer Links)</span>
+                      <span>Show in Footer Links</span>
                     </label>
                   </div>
 
@@ -1018,14 +1006,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       type="submit"
                       className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md"
                     >
-                      حفظ الصفحة
+                      Save Page
                     </button>
                     <button
                       type="button"
                       onClick={() => setIsEditingPage(false)}
                       className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-sm"
                     >
-                      إلغاء
+                      Cancel
                     </button>
                   </div>
                 </form>
@@ -1039,35 +1027,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 5. HOMEPAGE SECTIONS & SEO SETTINGS */}
       {/* ------------------------------------------------------------- */}
       {adminTab === 'sections' && (
-        <div className="space-y-6">
+        <div className="space-y-6 text-left">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-5 rounded-3xl bg-slate-900 border border-slate-800">
             <div>
-              <h3 className="text-lg font-bold text-white">إعدادات الصفحة الرئيسية والسكاشن</h3>
-              <p className="text-xs text-slate-400">تفعيل أو إخفاء أي قسم في الصفحة الرئيسية وتعديل العناوين ومدة التحديث</p>
+              <h3 className="text-lg font-bold text-white">Homepage Sections & SEO</h3>
+              <p className="text-xs text-slate-400">Toggle homepage sections and update SEO meta details</p>
             </div>
             <button
               onClick={handleSaveSettings}
               className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
             >
               <Save className="w-4 h-4" />
-              <span>حفظ الإعدادات</span>
+              <span>Save Settings</span>
             </button>
           </div>
 
           {/* Section Toggles Grid */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800">
-            <h4 className="font-bold text-white text-sm mb-4">التحكم في ظهور سكاشن الصفحة الرئيسية:</h4>
+            <h4 className="font-bold text-white text-sm mb-4">Homepage Section Visibility:</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
               {[
-                { key: 'hero', name: 'سكشن توليد الإيميل (Hero)' },
-                { key: 'inbox', name: 'صندوق الوارد الحي (Inbox)' },
-                { key: 'adsHeader', name: 'البنر الإعلاني العلوي (Leaderboard)' },
-                { key: 'adsSidebar', name: 'البنر الجانبي (Sidebar Ad)' },
-                { key: 'adsNative', name: 'شريط الإعلانات التفاعلي (Social Bar)' },
-                { key: 'whyUs', name: 'سكشن "ما هو البريد المؤقت ولماذا؟"' },
-                { key: 'howItWorks', name: 'سكشن المقارنة مع البريد العادي' },
-                { key: 'faq', name: 'سكشن الأسئلة الشائعة (FAQ)' },
-                { key: 'premiumBanner', name: 'بانر الترقية لباقات Premium' },
+                { key: 'hero', name: 'Email Generator (Hero)' },
+                { key: 'inbox', name: 'Live Inbox' },
+                { key: 'adsHeader', name: 'Header Banner (Adsterra)' },
+                { key: 'adsSidebar', name: 'Sidebar Banner (AdSense)' },
+                { key: 'adsNative', name: 'Social Bar (Floating Ad)' },
+                { key: 'whyUs', name: 'Information & Educational Section' },
+                { key: 'howItWorks', name: 'Comparison Table' },
+                { key: 'faq', name: 'FAQ Section' },
+                { key: 'premiumBanner', name: 'VIP Upgrade Banner' },
               ].map((item) => {
                 const isChecked = (localSettings.sectionsVisibility as any)[item.key] ?? true;
                 return (
@@ -1102,10 +1090,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           {/* General Site SEO Settings */}
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
-            <h4 className="font-bold text-white text-sm">بيانات الموقع وSEO:</h4>
+            <h4 className="font-bold text-white text-sm">Site Info & SEO Meta:</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">اسم الموقع:</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Site Name:</label>
                 <input
                   type="text"
                   value={localSettings.siteName}
@@ -1115,7 +1103,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">شعار الموقع (Tagline):</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Site Tagline:</label>
                 <input
                   type="text"
                   value={localSettings.siteTagline}
@@ -1126,7 +1114,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1">وصف الموقع لمحركات البحث (Meta Description):</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Meta Description:</label>
               <textarea
                 rows={2}
                 value={localSettings.siteDescription}
@@ -1142,26 +1130,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 6. STRIPE & PREMIUM CONFIGURATION */}
       {/* ------------------------------------------------------------- */}
       {adminTab === 'stripe' && (
-        <div className="space-y-6">
+        <div className="space-y-6 text-left">
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 p-5 rounded-3xl bg-slate-900 border border-slate-800">
             <div>
-              <h3 className="text-lg font-bold text-white">إعدادات باقات Premium وبوابة Stripe</h3>
-              <p className="text-xs text-slate-400">تعديل أسعار الاشتراكات وربط المفاتيح الخاصة بـ Stripe Payments</p>
+              <h3 className="text-lg font-bold text-white">Premium Plans & Stripe Integration</h3>
+              <p className="text-xs text-slate-400">Configure pricing tiers and Stripe publishable keys</p>
             </div>
             <button
               onClick={handleSaveSettings}
               className="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all shrink-0"
             >
               <Save className="w-4 h-4" />
-              <span>حفظ الإعدادات</span>
+              <span>Save Settings</span>
             </button>
           </div>
 
           <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 space-y-4">
-            <h4 className="font-bold text-white text-sm mb-2">أسعار باقات الاشتراك ($ USD):</h4>
+            <h4 className="font-bold text-white text-sm mb-2">Subscription Prices ($ USD):</h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">سعر الاشتراك الشهري ($):</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Monthly Price ($):</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1172,7 +1160,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">سعر الاشتراك السنوي ($):</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Yearly Price ($):</label>
                 <input
                   type="number"
                   step="0.01"
@@ -1184,12 +1172,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="pt-4 border-t border-slate-800">
-              <label className="block text-xs font-semibold text-slate-300 mb-1">مفتاح Stripe العام (Publishable Key):</label>
+              <label className="block text-xs font-semibold text-slate-300 mb-1">Stripe Publishable Key:</label>
               <input
                 type="text"
                 value={localSettings.stripePublicKey}
                 onChange={(e) => setLocalSettings({ ...localSettings, stripePublicKey: e.target.value })}
-                dir="ltr"
                 className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-emerald-400 font-mono text-left focus:outline-none focus:border-emerald-500"
               />
             </div>

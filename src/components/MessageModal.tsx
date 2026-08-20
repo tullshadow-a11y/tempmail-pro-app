@@ -7,14 +7,12 @@ import {
   Check, 
   Download, 
   Calendar, 
-  User, 
   Mail, 
   Key, 
   Paperclip, 
   Code, 
   FileText, 
   Eye,
-  ExternalLink,
   ShieldCheck
 } from 'lucide-react';
 import { MessageDetail } from '../types';
@@ -34,13 +32,12 @@ export const MessageModal: React.FC<MessageModalProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<'html' | 'text' | 'headers'>('html');
   const [copiedOtp, setCopiedOtp] = useState(false);
-  const [copiedRaw, setCopiedRaw] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   if (!isOpen || !message) return null;
 
   const htmlContent = Array.isArray(message.html) ? message.html.join('') : (message.html || '');
-  const textContent = message.text || message.intro || 'لا يوجد محتوى نصي.';
+  const textContent = message.text || message.intro || 'No text content available.';
 
   const handleCopyOtp = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -71,7 +68,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
   };
 
   // Format date
-  const formattedDate = new Date(message.createdAt).toLocaleString('ar-SA', {
+  const formattedDate = new Date(message.createdAt).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -102,9 +99,9 @@ export const MessageModal: React.FC<MessageModalProps> = ({
               <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
                 <Mail className="w-5 h-5" />
               </div>
-              <div className="overflow-hidden">
+              <div className="overflow-hidden text-left">
                 <h3 className="font-bold text-base sm:text-lg text-white truncate">
-                  {message.subject || '(بدون عنوان)'}
+                  {message.subject || '(No Subject)'}
                 </h3>
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   <Calendar className="w-3.5 h-3.5" />
@@ -117,7 +114,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
               <button
                 id="btn-download-eml"
                 onClick={handleDownloadEml}
-                title="تحميل الرسالة EML"
+                title="Download EML message"
                 className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors"
               >
                 <Download className="w-4 h-4" />
@@ -127,7 +124,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                 id="btn-delete-current-message"
                 onClick={handleDelete}
                 disabled={isDeleting}
-                title="حذف الرسالة"
+                title="Delete message"
                 className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
@@ -144,31 +141,31 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           </div>
 
           {/* Sender & Receiver Info Bar */}
-          <div className="px-5 py-3 bg-slate-900 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0">
+          <div className="px-5 py-3 bg-slate-900 border-b border-slate-800/80 flex flex-wrap items-center justify-between gap-3 text-xs shrink-0 text-left">
             <div className="flex items-center gap-2">
-              <span className="text-slate-400">من:</span>
+              <span className="text-slate-400">From:</span>
               <span className="font-semibold text-slate-200">{message.from.name || message.from.address}</span>
-              <span className="text-slate-400 font-mono-code dir-ltr">&lt;{message.from.address}&gt;</span>
+              <span className="text-slate-400 font-mono-code">&lt;{message.from.address}&gt;</span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-slate-400">إلى:</span>
-              <span className="text-emerald-400 font-mono-code dir-ltr">
+              <span className="text-slate-400">To:</span>
+              <span className="text-emerald-400 font-mono-code">
                 {message.to[0]?.address || 'Your Temp Mail'}
               </span>
             </div>
           </div>
 
-          {/* Extracted OTP / Verification Code Banner (if found) */}
+          {/* Extracted OTP / Verification Code Banner */}
           {message.extractedOtp && (
             <div className="mx-5 my-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/60 border border-emerald-500/40 flex items-center justify-between gap-3 shadow-md shrink-0">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
                   <Key className="w-5 h-5 animate-pulse" />
                 </div>
-                <div>
+                <div className="text-left">
                   <span className="text-xs text-emerald-300 font-bold block">
-                    تم اكتشاف رمز التحقق (OTP):
+                    Verification Code (OTP) Detected:
                   </span>
                   <span className="font-mono-code font-bold text-lg sm:text-xl text-white tracking-widest">
                     {message.extractedOtp}
@@ -182,7 +179,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                 className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-md transition-all active:scale-95 shrink-0"
               >
                 {copiedOtp ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedOtp ? 'تم النسخ!' : 'نسخ الرمز'}</span>
+                <span>{copiedOtp ? 'Copied' : 'Copy Code'}</span>
               </button>
             </div>
           )}
@@ -199,7 +196,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>العرض المصمم (HTML)</span>
+                <span>HTML View</span>
               </button>
 
               <button
@@ -211,7 +208,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                 }`}
               >
                 <FileText className="w-3.5 h-3.5" />
-                <span>النص العادي (Plain Text)</span>
+                <span>Plain Text</span>
               </button>
 
               <button
@@ -223,20 +220,20 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                 }`}
               >
                 <Code className="w-3.5 h-3.5" />
-                <span>الترويسة والبيانات (Headers)</span>
+                <span>Headers</span>
               </button>
             </div>
 
             {message.attachments && message.attachments.length > 0 && (
               <span className="flex items-center gap-1 text-xs text-amber-400 font-medium">
                 <Paperclip className="w-3.5 h-3.5" />
-                <span>{message.attachments.length} مرفقات</span>
+                <span>{message.attachments.length} attachments</span>
               </span>
             )}
           </div>
 
           {/* Email Body Content */}
-          <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-950/50">
+          <div className="p-4 sm:p-6 overflow-y-auto flex-1 bg-slate-950/50 text-left">
             {viewMode === 'html' && (
               htmlContent ? (
                 <div className="bg-white rounded-2xl p-4 text-slate-900 shadow-inner overflow-x-auto min-h-[250px]">
@@ -253,13 +250,13 @@ export const MessageModal: React.FC<MessageModalProps> = ({
             )}
 
             {viewMode === 'text' && (
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-200 font-mono-code text-xs leading-relaxed whitespace-pre-wrap selection:bg-emerald-500 dir-ltr text-left">
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-200 font-mono-code text-xs leading-relaxed whitespace-pre-wrap selection:bg-emerald-500 text-left">
                 {textContent}
               </div>
             )}
 
             {viewMode === 'headers' && (
-              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-300 font-mono-code text-xs space-y-2 dir-ltr text-left">
+              <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-300 font-mono-code text-xs space-y-2 text-left">
                 <div><strong className="text-emerald-400">Message-ID:</strong> {message.id}</div>
                 <div><strong className="text-emerald-400">From:</strong> {message.from.name} &lt;{message.from.address}&gt;</div>
                 <div><strong className="text-emerald-400">To:</strong> {message.to.map(t => t.address).join(', ')}</div>
@@ -274,7 +271,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
               <div className="mt-5 pt-4 border-t border-slate-800">
                 <h4 className="text-xs font-bold text-slate-300 mb-2 flex items-center gap-1.5">
                   <Paperclip className="w-4 h-4 text-amber-400" />
-                  <span>المرفقات ({message.attachments.length}):</span>
+                  <span>Attachments ({message.attachments.length}):</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {message.attachments.map((att) => (
@@ -291,7 +288,7 @@ export const MessageModal: React.FC<MessageModalProps> = ({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400"
-                        title="تحميل"
+                        title="Download"
                       >
                         <Download className="w-3.5 h-3.5" />
                       </a>
@@ -306,13 +303,13 @@ export const MessageModal: React.FC<MessageModalProps> = ({
           <div className="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs text-slate-500 px-5 shrink-0">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-              <span>محتوى مشفر وآمن، لا يتم مشاركته مع أي طرف ثالث</span>
+              <span>Encrypted content - zero telemetry stored</span>
             </span>
             <button
               onClick={onClose}
               className="text-slate-400 hover:text-white px-3 py-1 rounded-lg hover:bg-slate-800"
             >
-              إغلاق
+              Close
             </button>
           </div>
         </motion.div>

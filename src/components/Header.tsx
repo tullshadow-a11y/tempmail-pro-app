@@ -1,18 +1,12 @@
 import React, { useState } from 'react';
 import { 
-  Shield, 
-  Sparkles, 
   Crown, 
   BookOpen, 
-  HelpCircle, 
   Sun, 
   Moon, 
   Menu, 
   X, 
-  Mail, 
-  Lock, 
-  Globe,
-  ChevronDown
+  Mail
 } from 'lucide-react';
 import { ActiveTab, CustomPage } from '../types';
 
@@ -66,8 +60,8 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               )}
             </div>
-            <span className="text-[10px] sm:text-xs text-slate-400 block -mt-1">
-              البريد المؤقت السريع والآمن
+            <span className="text-[10px] sm:text-xs text-slate-400 block -mt-1 font-medium">
+              Fast & Secure Temporary Email
             </span>
           </div>
         </div>
@@ -83,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({
                 : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
             }`}
           >
-            الرئيسية
+            Home
           </button>
 
           <button
@@ -109,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>المدونة والمقالات</span>
+            <span>Blog & Articles</span>
           </button>
 
           {/* Custom Pages in Header */}
@@ -130,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="btn-toggle-theme"
             onClick={toggleTheme}
-            title={theme === 'dark' ? 'التحويل إلى الوضع النهاري' : 'التحويل إلى الوضع الليلي'}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             className="p-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 transition-colors"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
@@ -144,7 +138,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-md shadow-amber-900/20 transition-all active:scale-95"
             >
               <Crown className="w-3.5 h-3.5" />
-              <span>ترقية VIP</span>
+              <span>VIP Upgrade</span>
             </button>
           )}
 
@@ -167,11 +161,11 @@ export const Header: React.FC<HeaderProps> = ({
               setActiveTab('home');
               setMobileMenuOpen(false);
             }}
-            className={`w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold ${
               activeTab === 'home' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-200 hover:bg-slate-800'
             }`}
           >
-            الرئيسية
+            Home
           </button>
 
           <button
@@ -179,11 +173,11 @@ export const Header: React.FC<HeaderProps> = ({
               setActiveTab('premium');
               setMobileMenuOpen(false);
             }}
-            className={`w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-between ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-between ${
               activeTab === 'premium' ? 'bg-amber-500/20 text-amber-300' : 'text-amber-400 hover:bg-slate-800'
             }`}
           >
-            <span>باقات Premium</span>
+            <span>Premium VIP</span>
             <Crown className="w-4 h-4 text-amber-400" />
           </button>
 
@@ -192,11 +186,11 @@ export const Header: React.FC<HeaderProps> = ({
               setActiveTab('blog');
               setMobileMenuOpen(false);
             }}
-            className={`w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold ${
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold ${
               activeTab === 'blog' ? 'bg-emerald-500/20 text-emerald-400' : 'text-slate-200 hover:bg-slate-800'
             }`}
           >
-            المدونة والمقالات
+            Blog & Articles
           </button>
 
           {headerPages.map((page) => (
@@ -206,7 +200,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onOpenCustomPage(page.slug);
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-right px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800"
+              className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800"
             >
               {page.title}
             </button>
