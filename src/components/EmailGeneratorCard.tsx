@@ -10,7 +10,9 @@ import {
   Shield, 
   Clock, 
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Lock,
+  ArrowRight
 } from 'lucide-react';
 import { Account, DomainItem } from '../types';
 
@@ -44,7 +46,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   const [customError, setCustomError] = useState('');
   const [isChanging, setIsChanging] = useState(false);
 
-  const emailAddress = account?.address || 'Generating temporary email...';
+  const emailAddress = account?.address || 'جاري توليد البريد المؤقت...';
 
   const handleCopy = () => {
     if (!account?.address) return;
@@ -65,12 +67,12 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   const handleApplyCustomEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customUsername.trim()) {
-      setCustomError('Please enter a username');
+      setCustomError('الرجاء إدخال اسم المستخدم المطلوب');
       return;
     }
     const cleanUser = customUsername.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
     if (cleanUser.length < 3) {
-      setCustomError('Username must be at least 3 characters');
+      setCustomError('يجب أن يحتوي الاسم على 3 أحرف على الأقل (بالإنجليزية)');
       return;
     }
 
@@ -79,7 +81,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
       await onChangeEmail(cleanUser, selectedDomain || domains[0]?.domain);
       setShowCustomModal(false);
     } catch (err: any) {
-      setCustomError('Could not create custom email. Please try another username or domain.');
+      setCustomError('تعذر إنشاء البريد المخصص، يرجى تجربة اسم أو نطاق آخر');
     } finally {
       setIsChanging(false);
     }
@@ -110,18 +112,18 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
               <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
             </span>
             <span className="text-xs sm:text-sm font-semibold text-emerald-400">
-              Temporary email ready
+              بريدك الإلكتروني المؤقت جاهز ونشط
             </span>
-            <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-800 text-emerald-400 font-bold border border-emerald-500/30">
-              Active
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+              تلقائي وآمن 100%
             </span>
           </div>
 
           <div className="flex items-center gap-2 text-xs text-slate-400">
             <Clock className="w-3.5 h-3.5 text-slate-500" />
-            <span>Auto-refresh in:</span>
+            <span>التحديث التلقائي خلال:</span>
             <span className="font-mono font-bold text-emerald-400 bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-700">
-              {refreshSecondsLeft}s
+              {refreshSecondsLeft} ثانية
             </span>
           </div>
         </div>
@@ -133,15 +135,15 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
                 <Shield className="w-5 h-5" />
               </div>
-              <div className="overflow-hidden flex-1 text-left">
-                <span className="text-xs text-slate-400 block font-sans">Temporary Email Address:</span>
+              <div className="overflow-hidden flex-1 text-left dir-ltr">
+                <span className="text-xs text-slate-400 block font-sans text-right dir-rtl">عنوان البريد المؤقت:</span>
                 <input
                   type="text"
                   readOnly
                   value={emailAddress}
                   className="w-full bg-transparent font-mono-code font-bold text-base sm:text-lg md:text-xl text-emerald-400 outline-none select-all truncate cursor-pointer tracking-wide"
                   onClick={handleCopy}
-                  title="Click to copy"
+                  title="انقر للنسخ"
                 />
               </div>
             </div>
@@ -159,14 +161,14 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                 }`}
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                <span>{copied ? 'Copied' : 'Copy Email'}</span>
+                <span>{copied ? 'تم النسخ بنجاح!' : 'نسخ البريد'}</span>
               </button>
 
               <button
                 id="btn-qr-modal-open"
                 onClick={onOpenQR}
                 disabled={isLoading || !account}
-                title="Show Phone QR Code"
+                title="عرض رمز QR للهاتف"
                 className="p-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition-all"
               >
                 <QrCode className="w-5 h-5" />
@@ -189,7 +191,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
             ) : (
               <Copy className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
             )}
-            <span>{copied ? 'Copied' : 'Copy Email'}</span>
+            <span>{copied ? 'تم النسخ' : 'نسخ الإيميل'}</span>
           </button>
 
           {/* 2. Refresh Inbox */}
@@ -200,7 +202,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
             className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-teal-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
           >
             <RefreshCw className={`w-4 h-4 text-teal-400 ${isRefreshing ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
-            <span>{isRefreshing ? 'Refreshing...' : 'Refresh Inbox'}</span>
+            <span>{isRefreshing ? 'جاري التحديث...' : 'تحديث الوارد'}</span>
           </button>
 
           {/* 3. Change Email (Custom or Random) */}
@@ -211,7 +213,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
             className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-slate-750 text-slate-200 hover:text-white border border-slate-700/80 hover:border-amber-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
           >
             <Edit3 className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span>Change Email</span>
+            <span>تغيير الإيميل</span>
           </button>
 
           {/* 4. Delete Email */}
@@ -222,7 +224,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
             className="flex items-center justify-center gap-2 py-3 px-3 rounded-xl bg-slate-800/80 hover:bg-rose-950/40 text-slate-200 hover:text-rose-200 border border-slate-700/80 hover:border-rose-500/40 transition-all text-xs sm:text-sm font-semibold active:scale-95 group"
           >
             <Trash2 className="w-4 h-4 text-rose-400 group-hover:scale-110 transition-transform" />
-            <span>Delete & New</span>
+            <span>حذف وإنشاء جديد</span>
           </button>
         </div>
 
@@ -256,8 +258,8 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                   <Edit3 className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">Custom Email Address</h3>
-                  <p className="text-xs text-slate-400">Choose a custom username or generate a random address</p>
+                  <h3 className="text-lg font-bold text-white">تخصيص وتغيير البريد</h3>
+                  <p className="text-xs text-slate-400">اختر اسماً مخصصاً أو ولد بريداً عشوائياً جديداً</p>
                 </div>
               </div>
             </div>
@@ -265,7 +267,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
             <form onSubmit={handleApplyCustomEmail} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Username:
+                  اسم المستخدم (بالإنجليزية):
                 </label>
                 <div className="relative">
                   <input
@@ -273,6 +275,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                     value={customUsername}
                     onChange={(e) => setCustomUsername(e.target.value)}
                     placeholder="e.g. myname, test.user, john"
+                    dir="ltr"
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none placeholder-slate-600 text-left"
                   />
                 </div>
@@ -280,12 +283,13 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Select Domain:
+                  اختر النطاق (Domain):
                 </label>
                 <div className="relative">
                   <select
                     value={selectedDomain}
                     onChange={(e) => setSelectedDomain(e.target.value)}
+                    dir="ltr"
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-slate-200 font-mono focus:border-emerald-500 focus:outline-none appearance-none"
                   >
                     {domains.map((dom) => (
@@ -297,12 +301,12 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                       <option value="inboxbear.com">@inboxbear.com</option>
                     )}
                   </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
                 </div>
               </div>
 
               {/* Preview */}
-              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono text-center text-emerald-400 truncate">
+              <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs font-mono text-center text-emerald-400 dir-ltr truncate">
                 {customUsername.trim() || 'username'}@{selectedDomain || domains[0]?.domain || 'inboxbear.com'}
               </div>
 
@@ -319,7 +323,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                   className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
                   {isChanging ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                  <span>Save Custom Email</span>
+                  <span>حفظ البريد المخصص</span>
                 </button>
 
                 <button
@@ -329,7 +333,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                   className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-sm border border-slate-700 transition-all flex items-center justify-center gap-1.5"
                 >
                   <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span>Random</span>
+                  <span>توليد عشوائي</span>
                 </button>
               </div>
 
@@ -338,7 +342,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                 onClick={() => setShowCustomModal(false)}
                 className="w-full text-center text-xs text-slate-400 hover:text-slate-200 pt-1"
               >
-                Cancel
+                إلغاء
               </button>
             </form>
           </motion.div>

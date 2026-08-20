@@ -3,7 +3,11 @@ import {
   Mail, 
   ShieldCheck, 
   Lock, 
-  Crown
+  Heart, 
+  Crown, 
+  BookOpen, 
+  ExternalLink,
+  Sliders
 } from 'lucide-react';
 import { ActiveTab, CustomPage } from '../types';
 
@@ -42,18 +46,18 @@ export const Footer: React.FC<FooterProps> = ({
             </div>
 
             <p className="text-xs text-slate-400 leading-relaxed">
-              Fast, secure, and instant temporary email service to receive activation messages and OTP codes without registration.
+              الخدمة الرائدة لتوليد عناوين البريد الإلكتروني المؤقتة واستقبال رسائل التفعيل والـ OTP فورياً بدون تسجيل وبحماية تامة للخصوصية.
             </p>
 
-            <div className="flex items-center gap-2 text-xs text-emerald-400 font-semibold">
+            <div className="flex items-center gap-2 text-xs text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
-              <span>100% Encrypted & Private</span>
+              <span>مشفر ومحمي بنسبة 100%</span>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-bold text-white text-sm mb-4">Quick Links</h4>
+            <h4 className="font-bold text-white text-sm mb-4">روابط سريعة</h4>
             <ul className="space-y-2.5 text-xs">
               <li>
                 <button
@@ -63,7 +67,7 @@ export const Footer: React.FC<FooterProps> = ({
                   }}
                   className="hover:text-emerald-400 transition-colors"
                 >
-                  Temporary Inbox
+                  صندوق البريد المؤقت
                 </button>
               </li>
               <li>
@@ -75,7 +79,7 @@ export const Footer: React.FC<FooterProps> = ({
                   className="hover:text-amber-300 transition-colors flex items-center gap-1"
                 >
                   <Crown className="w-3 h-3 text-amber-400" />
-                  <span>VIP Premium Plans</span>
+                  <span>باقات VIP المميزة</span>
                 </button>
               </li>
               <li>
@@ -86,7 +90,7 @@ export const Footer: React.FC<FooterProps> = ({
                   }}
                   className="hover:text-emerald-400 transition-colors"
                 >
-                  Blog & Security Articles
+                  المدونة والمقالات الأمنية
                 </button>
               </li>
             </ul>
@@ -94,7 +98,7 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Legal & Pages */}
           <div>
-            <h4 className="font-bold text-white text-sm mb-4">Pages & Policies</h4>
+            <h4 className="font-bold text-white text-sm mb-4">الصفحات والسياسات</h4>
             <ul className="space-y-2.5 text-xs">
               {footerPages.map((page) => (
                 <li key={page.id}>
@@ -114,20 +118,20 @@ export const Footer: React.FC<FooterProps> = ({
 
           {/* Security & System Info */}
           <div>
-            <h4 className="font-bold text-white text-sm mb-4">System Status</h4>
+            <h4 className="font-bold text-white text-sm mb-4">حالة الأمان والخوادم</h4>
             <p className="text-xs text-slate-400 leading-relaxed mb-3">
-              All messages undergo automatic periodic self-destruction. No personal telemetry is stored.
+              جميع الرسائل تخضع لسياسة التدمير التلقائي الدوري ولا يتم تخزين أي ملفات تعريف شخصية.
             </p>
             <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 text-[11px] text-slate-300 flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-              <span>mail.gw Infrastructure: Operational</span>
+              <span>خوادم mail.gw متصلة وجاهزة</span>
             </div>
           </div>
         </div>
 
         {/* Bottom copyright & Discreet Admin link */}
         <div className="pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <p>© {new Date().getFullYear()} TempMail Pro. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} TempMail Pro. جميع الحقوق محفوظة.</p>
 
           <div className="flex items-center gap-4">
             {/* Discreet Admin Portal Access */}
@@ -138,10 +142,10 @@ export const Footer: React.FC<FooterProps> = ({
                 window.scrollTo({ top: 0, behavior: 'smooth' });
               }}
               className="flex items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors"
-              title="Admin Portal"
+              title="لوحة تحكم المسؤول (Admin)"
             >
               <Lock className="w-3.5 h-3.5" />
-              <span>Admin Portal</span>
+              <span>لوحة الإدارة</span>
             </button>
           </div>
         </div>

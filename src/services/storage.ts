@@ -17,54 +17,54 @@ export const DEFAULT_AD_SLOTS: AdSlotConfig[] = [
   {
     id: 'slot-header',
     position: 'header',
-    name: 'Header Banner (Leaderboard 728x90)',
+    name: 'بنر إعلاني علوي (Leaderboard 728x90)',
     enabled: true,
     provider: 'adsterra',
     codeSnippet: '<!-- Adsterra Leaderboard Script Code -->\n<script type="text/javascript">\n\tatOptions = {\n\t\t\'key\' : \'adsterra_leaderboard_demo_key\',\n\t\t\'format\' : \'iframe\',\n\t\t\'height\' : 90,\n\t\t\'width\' : 728,\n\t\t\'params\' : {}\n\t};\n</script>',
-    customTitle: 'Ultra Security Protection & High Speed VPN Access',
-    customSubtitle: 'Get 70% off top security tools with advanced malware and anti-tracking protection.',
-    customButtonText: 'Claim Offer',
+    customTitle: 'حماية أمنية فائقة وسرعة إنترنت غير محدودة',
+    customSubtitle: 'احصل على خصم 70% على أفضل VPN لعام 2026 مع حماية متقدمة من التتبع.',
+    customButtonText: 'تفعيل العرض الآن',
     customTargetUrl: 'https://google.com',
     customImageUrl: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80',
-    badgeText: 'Adsterra Recommended',
+    badgeText: 'إعلان موصى به',
   },
   {
     id: 'slot-sidebar',
     position: 'sidebar',
-    name: 'Sidebar Ad (Medium Rectangle 300x250)',
+    name: 'بنر إعلاني جانبي (Medium Rectangle 300x250)',
     enabled: true,
     provider: 'adsense',
     codeSnippet: '<!-- Google AdSense Responsive Unit -->\n<ins class="adsbygoogle"\n     style="display:block"\n     data-ad-client="ca-pub-1234567890123456"\n     data-ad-slot="9876543210"\n     data-ad-format="auto"\n     data-full-width-responsive="true"></ins>',
-    customTitle: '100GB Free Encrypted Cloud Storage',
-    customSubtitle: 'Securely store and share your files with end-to-end encryption.',
-    customButtonText: 'Try Free',
+    customTitle: 'سحابة تخزين مجانية 100GB مشفرة',
+    customSubtitle: 'احفظ ملفاتك بأمان مع تشفير من طرف لطرف بدون أي إعلانات مزعجة.',
+    customButtonText: 'تجربة مجانية',
     customTargetUrl: 'https://google.com',
     badgeText: 'Google Ad',
   },
   {
     id: 'slot-inbox-bottom',
     position: 'inbox_bottom',
-    name: 'Native Inbox Banner (Inline)',
+    name: 'بنر تحت صندوق الوارد (Inline Banner)',
     enabled: true,
     provider: 'adsterra',
     codeSnippet: '<!-- Adsterra Native Banner -->\n<div id="adsterra-native-container"></div>',
-    customTitle: 'Need virtual phone numbers for instant SMS activation?',
-    customSubtitle: 'Get virtual numbers from over 50 countries to receive SMS verification instantly.',
-    customButtonText: 'View Numbers',
+    customTitle: 'هل تحتاج إلى رقم هاتف مؤقت لاستقبال SMS؟',
+    customSubtitle: 'احصل على أرقام هواتف افتراضية لتفعيل حسابات واتساب وتيليجرام وجوجل فوراً.',
+    customButtonText: 'تصفح الأرقام المتاحة',
     customTargetUrl: 'https://google.com',
-    badgeText: 'Sponsored',
+    badgeText: 'إعلان مدعوم',
   },
   {
     id: 'slot-social-bar',
     position: 'social_bar',
-    name: 'Social Bar (Floating Toast)',
+    name: 'شريط الإعلانات التفاعلي (Social Bar / Floating Notification)',
     enabled: true,
     provider: 'adsterra',
     codeSnippet: '<!-- Adsterra Social Bar Script -->',
-    customTitle: 'Special offer! Claim your 30-day premium VPN trial now.',
-    customButtonText: 'View Deal',
+    customTitle: '🎉 وصلك عرض خاص! استبدل كود الخصم TEMPFREE للحصول على اشتراك VIP',
+    customButtonText: 'مشاهدة التفاصيل',
     customTargetUrl: 'https://google.com',
-    badgeText: 'Adsterra Social Bar',
+    badgeText: 'إشعار مميز',
   },
 ];
 
@@ -72,34 +72,34 @@ export const DEFAULT_BLOG_POSTS: BlogPost[] = [
   {
     id: 'post-1',
     slug: 'what-is-temp-mail-and-why-use-it',
-    title: 'What is Temporary Email and Why You Should Use It Daily for Privacy',
-    excerpt: 'Learn about disposable temporary email services and how they protect your primary inbox from spam, data breaches, and ad tracking.',
+    title: 'ما هو البريد المؤقت ولماذا يجب أن تستخدمه يومياً لحماية خصوصيتك؟',
+    excerpt: 'تعرف على مفهوم البريد الإلكتروني المؤقت (Disposable Email) وكيف يساعدك في التخلص من الرسائل الترويجية المزعجة وحماية بياناتك الشخصية.',
     content: `
-# What is Temporary Mail and Why is it Essential?
+# ما هو البريد المؤقت ولماذا أصبح ضرورة رقمية؟
 
-Every website and online platform asks for your email address during registration, file downloads, or article reading. But where does your real email address end up?
+في عالم اليوم، يطلب كل موقع أو تطبيق على الإنترنت عنوان بريدك الإلكتروني عند التسجيل أو حتى لتحميل ملف بسيط أو قراءة مقال. ولكن هل تساءلت يوماً أين ينتهي المطاف ببريدك الإلكتروني الحقيقي؟
 
-## Risks of Using Your Real Email Everywhere:
-1. **Spam Overload:** Email lists are sold to advertisers, flooding your personal inbox with unwanted offers.
-2. **Data Breaches:** If a service you signed up for suffers a breach, your email address and credentials can be exposed.
-3. **Cross-Site Tracking:** Ad networks link your online activity across platforms using your primary email.
+## أخطار استخدام بريدك الشخصي في كل مكان:
+1. **تراكم الرسائل المزعجة (Spam):** تباع قوائم البريد الإلكتروني للشركات الإعلانية، مما يغرق صندوق بريدك بآلاف العروض غير المرغوبة.
+2. **تسريب البيانات والاختراقات:** إذا تعرض الموقع الذي سجلت فيه للاختراق، فإن بريدك وربما كلمة مرورك تصبح متاحة للمخترقين.
+3. **تتبع نشاطك الرقمي:** تستخدم بعض الشركات عنوان بريدك لربط نشاطك عبر مواقع متعددة وبناء ملف إعلاني عنك.
 
-## How Temporary Mail Protects You:
-- **Instant Address:** No registration, passwords, or personal details required.
-- **Fast OTP Delivery:** Receive activation codes and verification links within seconds.
-- **Automatic Self-Destruction:** Emails are destroyed automatically to leave zero digital footprint.
+## كيف يحميك البريد المؤقت (Temp Mail)؟
+- **عنوان بريد فوري:** بدون الحاجة لأي تسجيل أو إدخال بيانات شخصية.
+- **استقبال فوري لأكواد التفعيل:** تصلك رسائل التحقق (OTP) خلال ثوانٍ معدودة.
+- **تدمير ذاتي آمن:** يتم حذف الرسائل والعناوين بعد فترة محددة، مما يضمن عدم ترك أي أثر لك على الشبكة.
 
-> **Pro Tip:** Keep your real email for banks, government services, and primary accounts. Use temporary email for everything else!
+> **نصيحة ذهبية:** استخدم بريدك الشخصي فقط للبنوك، والخدمات الحكومية، والمعاملات الرسمية. واستخدم البريد المؤقت لأي موقع آخر!
     `,
-    category: 'Privacy & Security',
+    category: 'الخصوصية والأمان',
     author: {
-      name: 'Alex Mercer',
+      name: 'أحمد المنصور',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-      role: 'Cybersecurity Expert',
+      role: 'خبير الأمن السيبراني',
     },
-    readTime: '4 min read',
+    readTime: '4 دقائق',
     coverImage: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?w=800&auto=format&fit=crop&q=80',
-    tags: ['Temp Mail', 'Privacy', 'Data Protection', 'Anti-Spam'],
+    tags: ['البريد المؤقت', 'الخصوصية', 'حماية البيانات', 'مكافحة السبام'],
     views: 1420,
     published: true,
     createdAt: '2026-08-10T10:00:00Z',
@@ -107,27 +107,30 @@ Every website and online platform asks for your email address during registratio
   {
     id: 'post-2',
     slug: 'how-developers-use-temp-mail-for-testing',
-    title: 'How Developers and QA Engineers Use Disposable Mail for Testing',
-    excerpt: 'A practical guide for developers and QA teams on automating user registration flows and email verification tests using temporary email APIs.',
+    title: 'كيف يستفيد المطورون ومختبرو الأنظمة (QA) من البريد المؤقت في اختبار التطبيقات؟',
+    excerpt: 'دليل عملي للمبرمجين ومختبري الجودة حول كيفية أتمتة اختبارات التسجيل وتفعيل الحسابات باستخدام خدمات البريد المؤقت.',
     content: `
-# Using Temporary Email in Software Testing
+# استخدام البريد المؤقت في هندسة البرمجيات واختبار الأنظمة
 
-Testing user onboarding flows (Sign-up, Password Reset, Email Verification) is a core part of web and mobile development.
+يعد اختبار دورة حياة المستخدم (Sign-up flow, Password Reset, Email Verification) من أهم مراحل تطوير أي تطبيق ويب أو هاتف.
 
-## Challenges Solved by Disposable Mail:
-1. **Unlimited Accounts:** Create hundreds of test accounts without managing real mailboxes.
-2. **HTML Inspection:** Ensure email templates render cleanly across clients.
-3. **Automated Testing:** Programmatically generate addresses and verify inbox contents via lightweight APIs.
+## التحديات التي يحلها البريد المؤقت للمطورين:
+1. **اختبار غير محدود:** إنشاء مئات الحسابات الوهمية دون الحاجة لامتلاك مئات العناوين الحقيقية على Gmail أو Outlook.
+2. **فحص الروابط والأكواد:** التأكد من وصول رسائل HTML بشكل سليم وتطابق التصميم مع مختلف عملاء البريد.
+3. **سرعة التنفيذ:** لا حاجة لعمليات التحقق الثنائي المعقدة أثناء مرحلة التطوير والاختبار التجريبي (Staging).
+
+## نصائح لأتمتة الاختبارات:
+يمكنك استخدام واجهات البرمجة الخاصة بنا لإنشاء إيميلات واستقبال الرسائل برمجياً عبر API مخصص ومجاني.
     `,
-    category: 'Software Engineering',
+    category: 'تطوير البرمجيات',
     author: {
-      name: 'Sarah Chen',
+      name: 'سارة العتيبي',
       avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
-      role: 'QA Automation Specialist',
+      role: 'مهندسة جودة برمجيات',
     },
-    readTime: '5 min read',
+    readTime: '5 دقائق',
     coverImage: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80',
-    tags: ['QA', 'Developers', 'Software Testing', 'API'],
+    tags: ['QA', 'مطورين', 'اختبار البرمجيات', 'API'],
     views: 890,
     published: true,
     createdAt: '2026-08-12T14:30:00Z',
@@ -135,27 +138,28 @@ Testing user onboarding flows (Sign-up, Password Reset, Email Verification) is a
   {
     id: 'post-3',
     slug: 'top-safety-tips-against-phishing',
-    title: '7 Crucial Safety Tips to Recognize Phishing Emails and Fraud',
-    excerpt: 'Learn key indicators of suspicious emails, fake links, and malicious attachments to keep your personal data secure.',
+    title: 'أهم 7 نصائح للحماية من هجمات التصيد الاحتيالي (Phishing) والرسائل الخبيثة',
+    excerpt: 'تعرف على حيل المحتالين عبر البريد الإلكتروني وكيف تميز الرسائل المزيفة والروابط المشبوهة بسهولة واحترافية.',
     content: `
-# How to Spot Phishing Messages Before It Is Too Late
+# كيف تكتشف رسائل التصيد الاحتيالي قبل فوات الأوان؟
 
-Phishing attacks remain the leading entry point for credential theft and financial scams online.
+تعتبر هجمات التصيد الإلكتروني السبب الأول في اختراق الحسابات وسرقة البطاقات البنكية حول العالم.
 
-## Warning Signs in Emails:
-- **Unfamiliar Sender Domain:** Messages claiming to be from official services sending from random domains.
-- **Urgent or Threatening Tone:** Demands for immediate action under threat of account suspension.
-- **Requests for Sensitive Info:** Legitimate organizations never request passwords or PINs via email.
+## العلامات التحذيرية في أي رسالة إلكترونية:
+- **اسم النطاق غير المألوف:** وصول رسالة تدعي أنها من بنك أو شركة معروفة من عنوان ينتهي بنطاق مجاني أو غريب.
+- **نبرة التهديد أو الاستعجال:** "سيتم إغلاق حسابك خلال 24 ساعة إن لم تؤكد بياناتك فوراً!".
+- **طلب معلومات حساسة:** لا تطلب المؤسسات الحقيقية كلمة المرور أو رقم البطاقة عبر رسالة إيميل عادية.
+- **روابط مختصرة أو مخفية:** مرر الماوس فوق الرابط قبل الضغط عليه للتأكد من الوجهة الحقيقية.
     `,
-    category: 'Guides & Safety',
+    category: 'نصائح وإرشادات',
     author: {
-      name: 'David Vance',
+      name: 'خالد إبراهيم',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-      role: 'Security Consultant',
+      role: 'مستشار أمن المعلومات',
     },
-    readTime: '3 min read',
+    readTime: '3 دقائق',
     coverImage: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=80',
-    tags: ['Phishing', 'Account Security', 'Tech Tips'],
+    tags: ['التصيد الاحتيالي', 'أمان الحسابات', 'نصائح تقنية'],
     views: 2150,
     published: true,
     createdAt: '2026-08-15T09:15:00Z',
@@ -166,23 +170,23 @@ export const DEFAULT_CUSTOM_PAGES: CustomPage[] = [
   {
     id: 'page-privacy',
     slug: 'privacy-policy',
-    title: 'Privacy Policy',
+    title: 'سياسة الخصوصية',
     content: `
-# Privacy Policy for TempMail Pro
+# سياسة الخصوصية لموقع TempMail Pro
 
-Your privacy is our highest priority. This policy outlines how we handle data when you use our temporary email services.
+نحن نضع خصوصيتك وأمان بياناتك على رأس أولوياتنا. تهدف هذه السياسة إلى توضيح كيفية تعاملنا مع البيانات عند استخدامك لخدمات البريد المؤقت.
 
-## 1. No Personal Data Collection
-- We do not ask for your real name, phone number, or personal details to generate temporary email addresses.
-- The service is free and available without creating an account or logging in.
+## 1. عدم جمع البيانات الشخصية
+- لا نطلب منك إدخال اسمك الحقيقي، رقم هاتفك، أو أي بيانات شخصية لتوليد بريد مؤقت.
+- الخدمة مجانية ومتاحة دون الحاجة لإنشاء حساب أو تسجيل دخول.
 
-## 2. Automatic Email Deletion
-- All received messages are subject to automatic periodic deletion to ensure zero persistent logs.
-- You can manually destroy your mailbox or messages at any time.
+## 2. حذف الرسائل التلقائي
+- جميع الرسائل الواردة إلى صناديق البريد المؤقتة تخضع لسياسة الحذف الدوري التلقائي لضمان عدم بقاء أي سجلات.
+- يمكنك حذف البريد أو الرسائل يدوياً بنقرة زر واحدة في أي وقت.
 
-## 3. Cookies & Ads
-- We may store cookies locally on your device to save UI preferences (such as dark mode settings).
-- Reliable ad networks (such as Adsterra and Google AdSense) display ads to maintain server operations and keep the service free.
+## 3. ملفات تعريف الارتباط والإعلانات
+- قد نستخدم ملفات تعريف ارتباط (Cookies) لحفظ تفضيلاتك في التصفح (مثل الوضع الليلي واللغة).
+- يتم عرض إعلانات موثوقة من شركائنا (مثل Google AdSense و Adsterra) لتغطية تكاليف السيرفرات واستمرار الخدمة المجانية.
     `,
     inHeader: false,
     inFooter: true,
@@ -192,19 +196,19 @@ Your privacy is our highest priority. This policy outlines how we handle data wh
   {
     id: 'page-terms',
     slug: 'terms-of-service',
-    title: 'Terms of Service',
+    title: 'شروط الاستخدام',
     content: `
-# Terms of Service for TempMail Pro
+# شروط وأحكام استخدام TempMail Pro
 
-By accessing or using our service, you agree to comply with the following terms:
+باستخدامك لموقعنا، فإنك توافق على الالتزام بالشروط والأحكام التالية:
 
-## 1. Acceptable Use
-- TempMail Pro is designed for personal privacy protection, software testing, and temporary communications.
-- Illicit activities, spamming, fraud, and unlawful behavior using temporary emails are strictly prohibited.
+## 1. الاستخدام المشروع
+- الخدمة مخصصة للاستخدام الشخصي والاختبارات البرمجية وحماية الخصوصية.
+- يُحظر تماماً استخدام البريد المؤقت في أي أنشطة غير قانونية، مثل الاحتيال، إرسال البريد العشوائي، أو انتهاك حقوق الآخرين.
 
-## 2. Service Disclaimer
-- Disposable mailboxes are temporary public channels. We hold no liability for lost messages after email expiration.
-- Do not use temporary email addresses for critical financial accounts or permanent services.
+## 2. إخلاء المسؤولية
+- البريد المؤقت هو خدمة عامة ومؤقتة. لا نتحمل أي مسؤولية عن فقدان الرسائل أو الأكواد بعد انتهاء صلاحية البريد.
+- لا يُنصح باستخدام البريد المؤقت للمعاملات المالية الهامة أو الحسابات الدائمة ذات القيمة العالية.
     `,
     inHeader: false,
     inFooter: true,
@@ -214,14 +218,14 @@ By accessing or using our service, you agree to comply with the following terms:
   {
     id: 'page-about',
     slug: 'about-us',
-    title: 'About Us',
+    title: 'من نحن',
     content: `
-# About TempMail Pro
+# عن TempMail Pro
 
-**TempMail Pro** is a leading disposable temporary email platform providing instant, secure, and spam-free communication tools to users worldwide.
+**TempMail Pro** هي المنصة الرائدة في تقديم حلول البريد الإلكتروني المؤقت والسريع في العالم العربي والعالم. نسعى لتوفير بيئة إنترنت نظيفة وخالية من الرسائل المزعجة للملايين من المستخدمين يومياً.
 
-## Our Mission:
-Empower internet users to take full control over their digital privacy and online identity through fast, user-friendly, and accessible technology.
+## رؤيتنا:
+تمكين كل مستخدم للإنترنت من السيطرة الكاملة على خصوصيته وهويته الرقمية، وتوفير أدوات متطورة للمطورين والمستخدمين العاديين بكل سهولة ومجانية.
     `,
     inHeader: true,
     inFooter: true,
@@ -231,15 +235,15 @@ Empower internet users to take full control over their digital privacy and onlin
   {
     id: 'page-contact',
     slug: 'contact-us',
-    title: 'Contact Us',
+    title: 'اتصل بنا',
     content: `
-# Get in Touch with TempMail Pro
+# تواصل مع فريق TempMail Pro
 
-We welcome your feedback, questions, and partnership inquiries.
+يسعدنا دائماً الاستماع إلى استفساراتكم واقتراحاتكم لتطوير الخدمة.
 
-- **Support Email:** support@tempmail.local
-- **Advertising & Business:** ads@tempmail.local
-- **Support Hours:** 24/7 Automated Infrastructure Support.
+- **البريد الإلكتروني للدعم:** support@tempmail.local
+- **الشراكات والإعلانات:** ads@tempmail.local
+- **أوقات العمل:** الدعم الفني متاح على مدار الساعة طوال أيام الأسبوع.
     `,
     inHeader: false,
     inFooter: true,
@@ -250,8 +254,8 @@ We welcome your feedback, questions, and partnership inquiries.
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   siteName: 'TempMail Pro',
-  siteTagline: 'Instant & Secure Temporary Email Service',
-  siteDescription: 'Generate instant temporary email addresses to receive activation messages, verification codes, and keep your primary inbox free from spam.',
+  siteTagline: 'بريدك المؤقت الفوري والآمن لحماية خصوصيتك',
+  siteDescription: 'أنشئ بريداً إلكترونياً مؤقتاً فورياً لاستقبال رسائل التفعيل والرموز وتجنب الرسائل المزعجة بضغطة زر واحدة.',
   contactEmail: 'admin@tempmail.com',
   autoRefreshIntervalSec: 10,
   soundEnabled: true,

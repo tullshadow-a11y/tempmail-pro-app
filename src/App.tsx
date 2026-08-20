@@ -23,7 +23,7 @@ import {
   MessageHeader, 
   SiteSettings 
 } from './types';
-import { MailGwService } from './services/mailGw';
+import { MailGwService, extractVerificationCode } from './services/mailGw';
 import { StorageService } from './services/storage';
 import { playNotificationSound } from './utils/audio';
 
@@ -308,7 +308,7 @@ export default function App() {
   };
 
   const handleDeleteAllMessages = async () => {
-    if (confirm('Are you sure you want to clear your inbox and delete all messages?')) {
+    if (confirm('هل تريد بالتأكيد إفراغ صندوق الوارد وحذف جميع الرسائل؟')) {
       for (const msg of messages) {
         if (account?.token && !account.token.startsWith('local_')) {
           MailGwService.deleteMessage(msg.id, account.token).catch(() => {});
@@ -329,43 +329,43 @@ export default function App() {
     const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     let sender = { name: 'Telegram Security', address: 'support@telegram.org' };
-    let subject = `Your Telegram Login Code: ${randomOtp}`;
-    let body = `Welcome!\n\nYour login verification code (OTP) is: ${randomOtp}\n\nPlease do not share this code with anyone to protect your account security.\nIf you did not request this code, you can safely ignore this message.`;
+    let subject = `كود تسجيل الدخول الخاص بك في تيليجرام: ${randomOtp}`;
+    let body = `مرحباً بك!\n\nرمز التحقق (OTP) الخاص بتسجيل دخول حسابك هو: ${randomOtp}\n\nيرجى عدم مشاركة هذا الرمز مع أي شخص لحماية حسابك.\nإذا لم تطلب هذا الرمز، يمكنك تجاهل هذه الرسالة بأمان.`;
     let html = `
       <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #2563eb; margin: 0;">Telegram Messenger</h2>
         </div>
-        <p style="font-size: 14px; line-height: 1.6;">Welcome to Telegram Messenger,</p>
-        <p style="font-size: 14px; line-height: 1.6;">Your verification code is:</p>
+        <p style="font-size: 14px; line-height: 1.6;">مرحباً بك في خدمة تيليجرام،</p>
+        <p style="font-size: 14px; line-height: 1.6;">رمز التحقق الخاص بك هو:</p>
         <div style="text-align: center; margin: 25px 0;">
           <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #0f172a; background: #f1f5f9; padding: 12px 24px; border-radius: 8px; border: 1px dashed #cbd5e1; display: inline-block;">
             ${randomOtp}
           </span>
         </div>
-        <p style="font-size: 12px; color: #64748b; line-height: 1.5;">This code is valid for 10 minutes. Do not share it with anyone.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.5;">هذا الرمز صالح لمدة 10 دقائق فقط. لا تشاركه مع أي جهة.</p>
       </div>
     `;
 
     if (templateKey === 'netflix') {
       sender = { name: 'Netflix', address: 'info@account.netflix.com' };
-      subject = `Confirm your email - Activation PIN: ${randomOtp}`;
-      body = `Welcome to Netflix!\nYour account activation code is: ${randomOtp}`;
+      subject = `تأكيد بريدك الإلكتروني - رمز التفعيل: ${randomOtp}`;
+      body = `أهلاً بك في Netflix!\nرمز التفعيل الخاص بحسابك هو: ${randomOtp}`;
       html = `
         <div style="font-family: sans-serif; padding: 20px; background: #141414; color: #ffffff; border-radius: 12px;">
           <h1 style="color: #e50914; margin: 0 0 15px 0;">NETFLIX</h1>
-          <p style="font-size: 15px;">Use the following verification code to complete setting up your account:</p>
+          <p style="font-size: 15px;">استخدم رمز التحقق التالي لإكمال إعداد حسابك:</p>
           <div style="margin: 20px 0; font-size: 28px; font-weight: bold; color: #e50914; letter-spacing: 4px;">${randomOtp}</div>
         </div>
       `;
     } else if (templateKey === 'google') {
       sender = { name: 'Google Accounts', address: 'no-reply@accounts.google.com' };
-      subject = `Google Security Alert: Verification code G-${randomOtp}`;
-      body = `A verification code was requested for your Google account.\nCode is: G-${randomOtp}`;
+      subject = `تنبيه أمان Google: رمز التحقق G-${randomOtp}`;
+      body = `تم طلب رمز التحقق لحسابك في Google.\nالرمز هو: G-${randomOtp}`;
       html = `
         <div style="font-family: sans-serif; padding: 20px; border: 1px solid #dadce0; border-radius: 8px;">
           <h2 style="color: #4285f4;">Google</h2>
-          <p>Verify your email address.</p>
+          <p>تحقق من عنوان بريدك الإلكتروني.</p>
           <p style="font-size: 24px; font-weight: bold; color: #202124;">G-${randomOtp}</p>
         </div>
       `;
