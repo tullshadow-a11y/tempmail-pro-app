@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
-import { HeroSection } from './components/HeroSection';
 import { EmailGeneratorCard } from './components/EmailGeneratorCard';
 import { InboxView } from './components/InboxView';
 import { InformationSection } from './components/InformationSection';
 import { AdBanner } from './components/AdBanner';
 import { MessageModal } from './components/MessageModal';
 import { QRCodeModal } from './components/QRCodeModal';
-import { AuthModal } from './components/AuthModal';
 import { PremiumPage } from './components/PremiumPage';
 import { BlogSection } from './components/BlogSection';
 import { CustomPageView } from './components/CustomPageView';
@@ -55,6 +53,7 @@ export default function App() {
 
   // Theme & Site Data
   const [theme, setTheme] = useState<'dark' | 'light'>(() => StorageService.getTheme());
+  const [isPremium, setIsPremium] = useState<boolean>(() => StorageService.isPremium());
   const [settings, setSettings] = useState<SiteSettings>(() => StorageService.getSiteSettings());
   const [adSlots, setAdSlots] = useState<AdSlotConfig[]>(() => StorageService.getAdSlots());
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => StorageService.getBlogPosts());
@@ -65,10 +64,6 @@ export default function App() {
   // -------------------------------------------------------------
   // INITIALIZATION: Language, Domains, Account, & Supabase VIP Check
   // -------------------------------------------------------------
-  useEffect(() => {
-    applyLanguageLayout(language);
-  }, [language]);
-
   useEffect(() => {
     let isMounted = true;
 
@@ -84,7 +79,7 @@ export default function App() {
 
         // 2. Load stored account or create a new one
         const storedAccount = StorageService.getAccount();
-        if (storedAccount && storedAccount.address) {
+        if (storedAccount && storedAccount.address && storedAccount.token) {
           if (isMounted) {
             setAccount(storedAccount);
             await fetchMessagesForAccount(storedAccount);
@@ -143,7 +138,6 @@ export default function App() {
 
     return () => {
       isMounted = false;
-      authListener.subscription.unsubscribe();
     };
   }, []);
 
@@ -161,22 +155,17 @@ export default function App() {
     if (theme === 'light') {
       root.classList.remove('dark');
       root.classList.add('light-theme');
-      document.body.className = 'bg-slate-100 text-slate-900 antialiased min-h-screen';
+      document.body.className = 'bg-slate-100 text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen';
     } else {
       root.classList.add('dark');
       root.classList.remove('light-theme');
-      document.body.className = 'bg-slate-950 text-slate-100 antialiased min-h-screen';
+      document.body.className = 'bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white min-h-screen';
     }
     StorageService.saveTheme(theme);
   }, [theme]);
 
   const toggleTheme = () => {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
-  };
-
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    applyLanguageLayout(lang);
   };
 
   // -------------------------------------------------------------
@@ -268,6 +257,9 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------
+  // DELETE EMAIL & CREATE NEW
+  // -------------------------------------------------------------
   const handleDeleteEmail = async () => {
     if (!account) return;
     if (!isPremium && StorageService.getGeneratedCount() >= 10) {
@@ -317,6 +309,9 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------
+  // DELETE MESSAGE
+  // -------------------------------------------------------------
   const handleDeleteMessage = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     StorageService.deleteLocalMessage(id);
@@ -331,7 +326,7 @@ export default function App() {
   };
 
   const handleDeleteAllMessages = async () => {
-    if (confirm('هل أنت تأكد من رغبتك في مسح كافة الرسائل من صندوق الوارد؟')) {
+    if (confirm('Are you sure you want to clear your inbox and delete all messages?')) {
       for (const msg of messages) {
         if (account?.token) {
           MultiMailService.deleteMessage(msg.id, account.token).catch(() => {});
@@ -352,32 +347,44 @@ export default function App() {
     const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     let sender = { name: 'Telegram Security', address: 'support@telegram.org' };
-    let subject = `كود التحقق الخاص بك لتيليجرام: ${randomOtp}`;
-    let body = `أهلاً بك!\nكود التحقق الخاص بك هو: ${randomOtp}\nيرجى عدم مشاركة هذا الكود مع أي شخص لحماية حسابك.`;
+    let subject = `Your Telegram Login Code: ${randomOtp}`;
+    let body = `Welcome!\n\nYour login verification code (OTP) is: ${randomOtp}\n\nPlease do not share this code with anyone to protect your account security.\nIf you did not request this code, you can safely ignore this message.`;
     let html = `
-      <div style="font-family: Cairo, sans-serif; padding: 20px; color: #1e293b; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;" dir="rtl">
+      <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #2563eb; margin: 0;">Telegram Messenger</h2>
         </div>
-        <p style="font-size: 14px; line-height: 1.6;">كود التفعيل والتحقق الخاص بك هو:</p>
+        <p style="font-size: 14px; line-height: 1.6;">Welcome to Telegram Messenger,</p>
+        <p style="font-size: 14px; line-height: 1.6;">Your verification code is:</p>
         <div style="text-align: center; margin: 25px 0;">
           <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #0f172a; background: #f1f5f9; padding: 12px 24px; border-radius: 8px; border: 1px dashed #cbd5e1; display: inline-block;">
             ${randomOtp}
           </span>
         </div>
-        <p style="font-size: 12px; color: #64748b;">هذا الكود صالِح لمدة 10 دقائق.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.5;">This code is valid for 10 minutes. Do not share it with anyone.</p>
       </div>
     `;
 
     if (templateKey === 'netflix') {
       sender = { name: 'Netflix', address: 'info@account.netflix.com' };
-      subject = `تأكيد حسابك - رمز التفعيل: ${randomOtp}`;
-      body = `أهلاً بك في نيتفلكس!\nرمز التفعيل الخاص بك هو: ${randomOtp}`;
+      subject = `Confirm your email - Activation PIN: ${randomOtp}`;
+      body = `Welcome to Netflix!\nYour account activation code is: ${randomOtp}`;
       html = `
-        <div style="font-family: sans-serif; padding: 20px; background: #141414; color: #ffffff; border-radius: 12px;" dir="rtl">
+        <div style="font-family: sans-serif; padding: 20px; background: #141414; color: #ffffff; border-radius: 12px;">
           <h1 style="color: #e50914; margin: 0 0 15px 0;">NETFLIX</h1>
-          <p style="font-size: 15px;">استخدم رمز التفعيل التالي لإكمال إعداد حسابك:</p>
+          <p style="font-size: 15px;">Use the following verification code to complete setting up your account:</p>
           <div style="margin: 20px 0; font-size: 28px; font-weight: bold; color: #e50914; letter-spacing: 4px;">${randomOtp}</div>
+        </div>
+      `;
+    } else if (templateKey === 'google') {
+      sender = { name: 'Google Accounts', address: 'no-reply@accounts.google.com' };
+      subject = `Google Security Alert: Verification code G-${randomOtp}`;
+      body = `A verification code was requested for your Google account.\nCode is: G-${randomOtp}`;
+      html = `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #dadce0; border-radius: 8px;">
+          <h2 style="color: #4285f4;">Google</h2>
+          <p>Verify your email address.</p>
+          <p style="font-size: 24px; font-weight: bold; color: #202124;">G-${randomOtp}</p>
         </div>
       `;
     }
@@ -436,7 +443,6 @@ export default function App() {
         onLanguageChange={handleLanguageChange}
         customPages={customPages}
         onOpenCustomPage={handleOpenCustomPage}
-        onScrollToSection={handleScrollToSection}
       />
 
       {/* 2. Top Leaderboard Banner */}
@@ -510,12 +516,8 @@ export default function App() {
                 await SupabaseService.registerSubscriber(account.address, 'monthly');
               }
             }}
-            onCancelPremium={async () => {
-              if (userProfile?.id) {
-                await SupabaseAuthService.updateVipStatus(userProfile.id, 'free', false);
-                const updated = await SupabaseAuthService.getUserProfile(userProfile.id);
-                if (updated) setUserProfile(updated);
-              }
+            onCancelPremium={() => {
+              setIsPremium(false);
               StorageService.setPremium(false);
             }}
             onBackToHome={() => setActiveTab('home')}

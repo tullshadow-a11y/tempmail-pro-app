@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Crown, 
+  BookOpen,
   Sun, 
   Moon, 
   Menu, 
@@ -24,7 +25,6 @@ interface HeaderProps {
   onLanguageChange: (lang: LanguageOption) => void;
   customPages: CustomPage[];
   onOpenCustomPage: (slug: string) => void;
-  onScrollToSection: (sectionId: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -37,12 +37,10 @@ export const Header: React.FC<HeaderProps> = ({
   onLanguageChange,
   customPages,
   onOpenCustomPage,
-  onScrollToSection,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
-  const t = translations[language];
   const headerPages = customPages.filter((p) => p.inHeader);
 
   return (
@@ -183,7 +181,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             id="btn-mobile-menu-toggle"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2.5 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
+            className="md:hidden p-2.5 rounded-xl bg-slate-900 text-slate-300 hover:text-white border border-slate-800"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -192,7 +190,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden bg-slate-900 border-b border-slate-800 px-4 py-4 space-y-2 shadow-2xl">
+        <div className="md:hidden bg-slate-900 border-b border-slate-800 px-4 py-4 space-y-2 shadow-2xl">
           <button
             onClick={() => {
               setActiveTab('home');
@@ -207,8 +205,11 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
-            onClick={() => handleNavClick('premium')}
-            className={`w-full text-start px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-between ${
+            onClick={() => {
+              setActiveTab('premium');
+              setMobileMenuOpen(false);
+            }}
+            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold flex items-center justify-between ${
               activeTab === 'premium' ? 'bg-amber-500/20 text-amber-300' : 'text-amber-400 hover:bg-slate-800'
             }`}
           >
@@ -238,7 +239,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onOpenCustomPage(page.slug);
                 setMobileMenuOpen(false);
               }}
-              className="w-full text-start px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800"
+              className="w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold text-slate-300 hover:bg-slate-800"
             >
               {page.title}
             </button>
