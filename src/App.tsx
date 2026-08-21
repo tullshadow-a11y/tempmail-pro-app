@@ -1,13 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Header } from './components/Header';
-import { HeroSection } from './components/HeroSection';
 import { EmailGeneratorCard } from './components/EmailGeneratorCard';
 import { InboxView } from './components/InboxView';
 import { InformationSection } from './components/InformationSection';
 import { AdBanner } from './components/AdBanner';
 import { MessageModal } from './components/MessageModal';
 import { QRCodeModal } from './components/QRCodeModal';
-import { AuthModal } from './components/AuthModal';
 import { PremiumPage } from './components/PremiumPage';
 import { BlogSection } from './components/BlogSection';
 import { CustomPageView } from './components/CustomPageView';
@@ -25,11 +23,11 @@ import {
   MessageHeader, 
   SiteSettings 
 } from './types';
-import { MultiFallbackEmailService } from './services/emailService';
+import { MultiMailService } from './services/multiMailService';
 import { StorageService } from './services/storage';
-import { SupabaseAuthService, UserProfile } from './services/supabase';
-import { applyLanguageLayout, getInitialLanguage, Language } from './utils/i18n';
+import { SupabaseService } from './services/supabase';
 import { playNotificationSound } from './utils/audio';
+import { getCurrentLanguage, setAppLanguage, LanguageOption, t } from './utils/i18n';
 
 export default function App() {
   // Navigation & Page State
@@ -37,14 +35,10 @@ export default function App() {
   const [selectedPostSlug, setSelectedPostSlug] = useState<string | null>(null);
   const [selectedPageSlug, setSelectedPageSlug] = useState<string | null>(null);
 
-  // Language & Layout Presentation (Default Arabic RTL)
-  const [language, setLanguage] = useState<Language>(getInitialLanguage);
+  // i18n Language State
+  const [currentLang, setCurrentLang] = useState<LanguageOption>(() => getCurrentLanguage());
 
-  // Supabase User Profile & VIP State
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  // Email State
+  // Email & MultiMail Service State
   const [account, setAccount] = useState<Account | null>(null);
   const [domains, setDomains] = useState<DomainItem[]>([]);
   const [messages, setMessages] = useState<(MessageHeader | MessageDetail)[]>([]);
@@ -52,58 +46,59 @@ export default function App() {
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isQRModalOpen, setIsQRModalOpen] = useState(false);
 
-  // Loading & Timer States
+  // Loading & Active Countdown Timer States (e.g. 600s -> 09:59 format)
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [refreshSecondsLeft, setRefreshSecondsLeft] = useState(10);
+  const [refreshSecondsLeft, setRefreshSecondsLeft] = useState(600);
 
   // Theme & Site Data
   const [theme, setTheme] = useState<'dark' | 'light'>(() => StorageService.getTheme());
+  const [isPremium, setIsPremium] = useState<boolean>(() => StorageService.isPremium());
   const [settings, setSettings] = useState<SiteSettings>(() => StorageService.getSiteSettings());
   const [adSlots, setAdSlots] = useState<AdSlotConfig[]>(() => StorageService.getAdSlots());
   const [blogPosts, setBlogPosts] = useState<BlogPost[]>(() => StorageService.getBlogPosts());
   const [customPages, setCustomPages] = useState<CustomPage[]>(() => StorageService.getCustomPages());
 
-  // Ref for audio chime on new mail
   const prevMsgCountRef = useRef(0);
 
   // -------------------------------------------------------------
-  // INITIALIZATION: Apply RTL layout, Supabase Auth, & Domains
+  // INITIALIZATION: Language, Domains, Account, & Supabase VIP Check
   // -------------------------------------------------------------
-  useEffect(() => {
-    applyLanguageLayout(language);
-  }, [language]);
-
   useEffect(() => {
     let isMounted = true;
 
     async function initApp() {
       setIsLoading(true);
-      try {
-        // 1. Fetch Supabase User Profile & VIP status
-        const profile = await SupabaseAuthService.getUserProfile();
-        if (isMounted && profile) {
-          setUserProfile(profile);
-          if (profile.isVip) StorageService.setPremium(true);
-        }
+      // Ensure document direction (RTL/LTR) is initialized
+      setAppLanguage(currentLang.code);
 
-        // 2. Fetch available domains
-        const fetchedDomains = await MultiFallbackEmailService.getDomains();
+      try {
+        // 1. Fetch available domains from multi-provider engine
+        const fetchedDomains = await MultiMailService.getDomains();
         if (isMounted) setDomains(fetchedDomains);
 
-        // 3. Load stored account or create fresh multi-fallback account
+        // 2. Load stored account or create a new one
         const storedAccount = StorageService.getAccount();
-        if (storedAccount && storedAccount.address) {
+        if (storedAccount && storedAccount.address && storedAccount.token) {
           if (isMounted) {
             setAccount(storedAccount);
             await fetchMessagesForAccount(storedAccount);
           }
         } else {
-          const { account: newAcc } = await MultiFallbackEmailService.createAccount();
+          const { account: newAcc } = await MultiMailService.createAccount();
           if (isMounted) {
             setAccount(newAcc);
             StorageService.saveAccount(newAcc);
             await fetchMessagesForAccount(newAcc);
+          }
+        }
+
+        // 3. Check Supabase VIP status if account exists
+        if (storedAccount?.address) {
+          const isVip = await SupabaseService.checkSubscriberStatus(storedAccount.address);
+          if (isVip && isMounted) {
+            setIsPremium(true);
+            StorageService.setPremium(true);
           }
         }
       } catch (err) {
@@ -115,24 +110,42 @@ export default function App() {
 
     initApp();
 
-    // Listen for Supabase auth state changes
-    const { data: authListener } = SupabaseAuthService.onAuthStateChange(async (user) => {
-      if (user) {
-        const prof = await SupabaseAuthService.getUserProfile(user.id);
-        if (isMounted && prof) {
-          setUserProfile(prof);
-          if (prof.isVip) StorageService.setPremium(true);
-        }
-      } else {
-        if (isMounted) setUserProfile(null);
-      }
-    });
+    const pathname = (window.location.pathname || '').toLowerCase().replace(/\/$/, '');
+    const hash = (window.location.hash || '').toLowerCase();
+    const searchParams = new URLSearchParams(window.location.search || '');
+
+    if (
+      hash === '#admin' ||
+      pathname === '/admin' ||
+      pathname.startsWith('/admin/') ||
+      searchParams.get('admin') === 'true' ||
+      searchParams.get('tab') === 'admin'
+    ) {
+      setActiveTab('admin');
+    } else if (
+      hash === '#premium' ||
+      pathname === '/premium' ||
+      searchParams.get('tab') === 'premium'
+    ) {
+      setActiveTab('premium');
+    } else if (
+      hash === '#blog' ||
+      pathname === '/blog' ||
+      searchParams.get('tab') === 'blog'
+    ) {
+      setActiveTab('blog');
+    }
 
     return () => {
       isMounted = false;
-      authListener.subscription.unsubscribe();
     };
   }, []);
+
+  // Language Change Handler
+  const handleLanguageChange = (lang: LanguageOption) => {
+    const updated = setAppLanguage(lang.code);
+    setCurrentLang(updated);
+  };
 
   // -------------------------------------------------------------
   // THEME EFFECT
@@ -142,11 +155,11 @@ export default function App() {
     if (theme === 'light') {
       root.classList.remove('dark');
       root.classList.add('light-theme');
-      document.body.className = 'bg-slate-100 text-slate-900 antialiased min-h-screen';
+      document.body.className = 'bg-slate-100 text-slate-900 antialiased selection:bg-emerald-500 selection:text-white min-h-screen';
     } else {
       root.classList.add('dark');
       root.classList.remove('light-theme');
-      document.body.className = 'bg-slate-950 text-slate-100 antialiased min-h-screen';
+      document.body.className = 'bg-slate-950 text-slate-100 antialiased selection:bg-emerald-500 selection:text-white min-h-screen';
     }
     StorageService.saveTheme(theme);
   }, [theme]);
@@ -155,13 +168,8 @@ export default function App() {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  const handleLanguageChange = (lang: Language) => {
-    setLanguage(lang);
-    applyLanguageLayout(lang);
-  };
-
   // -------------------------------------------------------------
-  // AUTO REFRESH TIMER
+  // ACTIVE COUNTDOWN TIMER (Counts down from 10 mins e.g. 09:59)
   // -------------------------------------------------------------
   useEffect(() => {
     if (!account) return;
@@ -170,24 +178,32 @@ export default function App() {
       setRefreshSecondsLeft((prev) => {
         if (prev <= 1) {
           handleSilentRefresh();
-          return settings.autoRefreshIntervalSec || 10;
+          return 600; // Reset to 10 minutes (600 seconds)
+        }
+        // Poll every 10 seconds silently
+        if (prev % 10 === 0) {
+          handleSilentRefresh();
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [account, settings.autoRefreshIntervalSec]);
+  }, [account]);
 
   // -------------------------------------------------------------
-  // FETCH MESSAGES (Multi-Fallback)
+  // FETCH MESSAGES
   // -------------------------------------------------------------
   const fetchMessagesForAccount = async (targetAccount?: Account | null) => {
     const currentAcc = targetAccount || account;
     if (!currentAcc) return;
 
     try {
-      const remoteMessages = await MultiFallbackEmailService.getMessages(currentAcc);
+      let remoteMessages: MessageHeader[] = [];
+      if (currentAcc.token) {
+        remoteMessages = await MultiMailService.getMessages(currentAcc.token);
+      }
+
       const localMsgs = StorageService.getLocalMessages(currentAcc.address);
       const combined = [...localMsgs, ...remoteMessages.filter(rm => !localMsgs.some(lm => lm.id === rm.id))];
 
@@ -211,22 +227,28 @@ export default function App() {
 
   const handleManualRefresh = async () => {
     setIsRefreshing(true);
-    setRefreshSecondsLeft(settings.autoRefreshIntervalSec || 10);
     await fetchMessagesForAccount(account);
     setIsRefreshing(false);
   };
 
   // -------------------------------------------------------------
-  // CHANGE EMAIL & DELETE EMAIL
+  // CHANGE EMAIL
   // -------------------------------------------------------------
   const handleChangeEmail = async (customUser?: string, customDomain?: string) => {
+    if (!isPremium && StorageService.getGeneratedCount() >= 10) {
+      setActiveTab('premium');
+      alert(currentLang.code === 'ar' ? 'لقد وصلت إلى الحد الأقصى للمستخدم غير المسجل (10 إيميلات مجانية). يرجى تسجيل الدخول أو الترقية للتعامل مع عدد غير محدود.' : 'You have reached the limit of 10 free emails for unauthenticated users. Please Sign Up / Log In to continue.');
+      return;
+    }
     setIsLoading(true);
     try {
-      const { account: newAcc } = await MultiFallbackEmailService.createAccount(customUser, customDomain);
+      const { account: newAcc } = await MultiMailService.createAccount(customUser, customDomain);
       setAccount(newAcc);
       StorageService.saveAccount(newAcc);
+      StorageService.incrementGeneratedCount();
       setMessages([]);
       prevMsgCountRef.current = 0;
+      setRefreshSecondsLeft(600);
       await fetchMessagesForAccount(newAcc);
     } catch (err) {
       console.error('Change email error:', err);
@@ -235,16 +257,29 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------
+  // DELETE EMAIL & CREATE NEW
+  // -------------------------------------------------------------
   const handleDeleteEmail = async () => {
     if (!account) return;
+    if (!isPremium && StorageService.getGeneratedCount() >= 10) {
+      setActiveTab('premium');
+      alert(currentLang.code === 'ar' ? 'لقد وصلت إلى الحد الأقصى للمستخدم غير المسجل (10 إيميلات مجانية). يرجى تسجيل الدخول أو الترقية للمتابعة.' : 'You have reached the 10 free email limit for unauthenticated users. Please Sign Up / Log In to continue.');
+      return;
+    }
     setIsLoading(true);
     try {
+      if (account.token) {
+        await MultiMailService.deleteAccount(account.id, account.token);
+      }
       StorageService.clearAccount();
-      const { account: freshAcc } = await MultiFallbackEmailService.createAccount();
+      const { account: freshAcc } = await MultiMailService.createAccount();
       setAccount(freshAcc);
       StorageService.saveAccount(freshAcc);
+      StorageService.incrementGeneratedCount();
       setMessages([]);
       prevMsgCountRef.current = 0;
+      setRefreshSecondsLeft(600);
       await fetchMessagesForAccount(freshAcc);
     } catch (err) {
       console.error('Delete email error:', err);
@@ -264,8 +299,8 @@ export default function App() {
       return;
     }
 
-    if (account) {
-      const detail = await MultiFallbackEmailService.getMessageDetail(msgId, account);
+    if (account?.token) {
+      const detail = await MultiMailService.getMessageDetail(msgId, account.token);
       if (detail) {
         setSelectedMessage(detail);
         setIsMessageModalOpen(true);
@@ -274,9 +309,15 @@ export default function App() {
     }
   };
 
+  // -------------------------------------------------------------
+  // DELETE MESSAGE
+  // -------------------------------------------------------------
   const handleDeleteMessage = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     StorageService.deleteLocalMessage(id);
+    if (account?.token) {
+      await MultiMailService.deleteMessage(id, account.token);
+    }
     setMessages(prev => prev.filter(m => m.id !== id));
     if (selectedMessage?.id === id) {
       setIsMessageModalOpen(false);
@@ -285,8 +326,11 @@ export default function App() {
   };
 
   const handleDeleteAllMessages = async () => {
-    if (confirm('هل أنت تأكد من رغبتك في مسح كافة الرسائل من صندوق الوارد؟')) {
+    if (confirm('Are you sure you want to clear your inbox and delete all messages?')) {
       for (const msg of messages) {
+        if (account?.token) {
+          MultiMailService.deleteMessage(msg.id, account.token).catch(() => {});
+        }
         StorageService.deleteLocalMessage(msg.id);
       }
       setMessages([]);
@@ -303,32 +347,44 @@ export default function App() {
     const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
     let sender = { name: 'Telegram Security', address: 'support@telegram.org' };
-    let subject = `كود التحقق الخاص بك لتيليجرام: ${randomOtp}`;
-    let body = `أهلاً بك!\nكود التحقق الخاص بك هو: ${randomOtp}\nيرجى عدم مشاركة هذا الكود مع أي شخص لحماية حسابك.`;
+    let subject = `Your Telegram Login Code: ${randomOtp}`;
+    let body = `Welcome!\n\nYour login verification code (OTP) is: ${randomOtp}\n\nPlease do not share this code with anyone to protect your account security.\nIf you did not request this code, you can safely ignore this message.`;
     let html = `
-      <div style="font-family: Cairo, sans-serif; padding: 20px; color: #1e293b; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;" dir="rtl">
+      <div style="font-family: sans-serif; padding: 20px; color: #1e293b; max-width: 500px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px;">
         <div style="text-align: center; margin-bottom: 20px;">
           <h2 style="color: #2563eb; margin: 0;">Telegram Messenger</h2>
         </div>
-        <p style="font-size: 14px; line-height: 1.6;">كود التفعيل والتحقق الخاص بك هو:</p>
+        <p style="font-size: 14px; line-height: 1.6;">Welcome to Telegram Messenger,</p>
+        <p style="font-size: 14px; line-height: 1.6;">Your verification code is:</p>
         <div style="text-align: center; margin: 25px 0;">
           <span style="font-size: 32px; font-weight: 800; letter-spacing: 6px; color: #0f172a; background: #f1f5f9; padding: 12px 24px; border-radius: 8px; border: 1px dashed #cbd5e1; display: inline-block;">
             ${randomOtp}
           </span>
         </div>
-        <p style="font-size: 12px; color: #64748b;">هذا الكود صالِح لمدة 10 دقائق.</p>
+        <p style="font-size: 12px; color: #64748b; line-height: 1.5;">This code is valid for 10 minutes. Do not share it with anyone.</p>
       </div>
     `;
 
     if (templateKey === 'netflix') {
       sender = { name: 'Netflix', address: 'info@account.netflix.com' };
-      subject = `تأكيد حسابك - رمز التفعيل: ${randomOtp}`;
-      body = `أهلاً بك في نيتفلكس!\nرمز التفعيل الخاص بك هو: ${randomOtp}`;
+      subject = `Confirm your email - Activation PIN: ${randomOtp}`;
+      body = `Welcome to Netflix!\nYour account activation code is: ${randomOtp}`;
       html = `
-        <div style="font-family: sans-serif; padding: 20px; background: #141414; color: #ffffff; border-radius: 12px;" dir="rtl">
+        <div style="font-family: sans-serif; padding: 20px; background: #141414; color: #ffffff; border-radius: 12px;">
           <h1 style="color: #e50914; margin: 0 0 15px 0;">NETFLIX</h1>
-          <p style="font-size: 15px;">استخدم رمز التفعيل التالي لإكمال إعداد حسابك:</p>
+          <p style="font-size: 15px;">Use the following verification code to complete setting up your account:</p>
           <div style="margin: 20px 0; font-size: 28px; font-weight: bold; color: #e50914; letter-spacing: 4px;">${randomOtp}</div>
+        </div>
+      `;
+    } else if (templateKey === 'google') {
+      sender = { name: 'Google Accounts', address: 'no-reply@accounts.google.com' };
+      subject = `Google Security Alert: Verification code G-${randomOtp}`;
+      body = `A verification code was requested for your Google account.\nCode is: G-${randomOtp}`;
+      html = `
+        <div style="font-family: sans-serif; padding: 20px; border: 1px solid #dadce0; border-radius: 8px;">
+          <h2 style="color: #4285f4;">Google</h2>
+          <p>Verify your email address.</p>
+          <p style="font-size: 24px; font-weight: bold; color: #202124;">G-${randomOtp}</p>
         </div>
       `;
     }
@@ -356,13 +412,6 @@ export default function App() {
     }
   };
 
-  const handleScrollToSection = (sectionId: string) => {
-    const el = document.getElementById(sectionId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const handleOpenCustomPage = (slug: string) => {
     setSelectedPageSlug(slug);
     setActiveTab('page');
@@ -374,8 +423,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const isVip = Boolean(userProfile?.isVip);
-
   const headerAdSlot = adSlots.find(s => s.position === 'header');
   const sidebarAdSlot = adSlots.find(s => s.position === 'sidebar');
   const inboxBottomAdSlot = adSlots.find(s => s.position === 'inbox_bottom');
@@ -385,40 +432,29 @@ export default function App() {
 
   return (
     <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'dark bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
-      {/* 1. Reconstructed Header with Centered Logo & Language Selector */}
+      {/* 1. Centered Header with Logo & Language Dropdown Selector */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         theme={theme}
         toggleTheme={toggleTheme}
-        language={language}
+        isPremium={isPremium}
+        currentLang={currentLang}
         onLanguageChange={handleLanguageChange}
-        userProfile={userProfile}
-        onOpenAuthModal={() => setIsAuthModalOpen(true)}
-        onSignOut={async () => {
-          await SupabaseAuthService.signOut();
-          setUserProfile(null);
-        }}
         customPages={customPages}
         onOpenCustomPage={handleOpenCustomPage}
-        onScrollToSection={handleScrollToSection}
       />
 
-      {/* 2. Top Leaderboard Banner (Adsterra Embed) - If not VIP */}
-      {!isVip && settings.sectionsVisibility.adsHeader && headerAdSlot && headerAdSlot.enabled && (
+      {/* 2. Top Leaderboard Banner */}
+      {!isPremium && settings.sectionsVisibility.adsHeader && headerAdSlot && headerAdSlot.enabled && (
         <AdBanner slot={headerAdSlot} position="header" />
       )}
 
-      {/* 3. Main Router Body */}
+      {/* 3. Main Router */}
       <main className="flex-1 w-full">
         {activeTab === 'home' && (
           <div>
-            {/* Reconstructed Hero Section */}
-            {settings.sectionsVisibility.hero && (
-              <HeroSection language={language} />
-            )}
-
-            {/* Reconstructed Mail Card */}
+            {/* Hero Email Generator Card with Strict Matching Layout */}
             {settings.sectionsVisibility.hero && (
               <EmailGeneratorCard
                 account={account}
@@ -426,7 +462,7 @@ export default function App() {
                 isLoading={isLoading}
                 isRefreshing={isRefreshing}
                 refreshSecondsLeft={refreshSecondsLeft}
-                language={language}
+                currentLang={currentLang}
                 onRefresh={handleManualRefresh}
                 onChangeEmail={handleChangeEmail}
                 onDeleteEmail={handleDeleteEmail}
@@ -434,14 +470,15 @@ export default function App() {
               />
             )}
 
-            {/* Inbox Section & Optional Sidebar Banner */}
+            {/* Main Content Layout */}
             <div className="w-full max-w-6xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className={!isVip && settings.sectionsVisibility.adsSidebar && sidebarAdSlot?.enabled ? 'lg:col-span-8' : 'lg:col-span-12'}>
+              <div className={!isPremium && settings.sectionsVisibility.adsSidebar && sidebarAdSlot?.enabled ? 'lg:col-span-8' : 'lg:col-span-12'}>
                 {settings.sectionsVisibility.inbox && (
                   <InboxView
                     messages={messages}
                     isLoading={isLoading}
                     isRefreshing={isRefreshing}
+                    currentLang={currentLang}
                     onRefresh={handleManualRefresh}
                     onSelectMessage={handleSelectMessage}
                     onDeleteMessage={handleDeleteMessage}
@@ -450,19 +487,18 @@ export default function App() {
                   />
                 )}
 
-                {!isVip && settings.sectionsVisibility.adsNative && inboxBottomAdSlot && inboxBottomAdSlot.enabled && (
+                {!isPremium && settings.sectionsVisibility.adsNative && inboxBottomAdSlot && inboxBottomAdSlot.enabled && (
                   <AdBanner slot={inboxBottomAdSlot} position="inbox_bottom" />
                 )}
               </div>
 
-              {!isVip && settings.sectionsVisibility.adsSidebar && sidebarAdSlot && sidebarAdSlot.enabled && (
+              {!isPremium && settings.sectionsVisibility.adsSidebar && sidebarAdSlot && sidebarAdSlot.enabled && (
                 <div className="lg:col-span-4 space-y-6 pt-6">
                   <AdBanner slot={sidebarAdSlot} position="sidebar" />
                 </div>
               )}
             </div>
 
-            {/* Why Us / Educational Section */}
             {settings.sectionsVisibility.whyUs && (
               <InformationSection />
             )}
@@ -472,30 +508,16 @@ export default function App() {
         {activeTab === 'premium' && (
           <PremiumPage
             settings={settings}
-            userProfile={userProfile}
-            language={language}
-            onActivatePremium={async (tier) => {
-              if (userProfile?.id) {
-                await SupabaseAuthService.updateVipStatus(userProfile.id, tier, true);
-                const updated = await SupabaseAuthService.getUserProfile(userProfile.id);
-                if (updated) setUserProfile(updated);
-              } else {
-                StorageService.setPremium(true);
-                setUserProfile({
-                  id: 'local_vip',
-                  email: 'vip@local.user',
-                  isVip: true,
-                  vipTier: tier,
-                  createdAt: new Date().toISOString(),
-                });
+            isPremium={isPremium}
+            onActivatePremium={async () => {
+              setIsPremium(true);
+              StorageService.setPremium(true);
+              if (account?.address) {
+                await SupabaseService.registerSubscriber(account.address, 'monthly');
               }
             }}
-            onCancelPremium={async () => {
-              if (userProfile?.id) {
-                await SupabaseAuthService.updateVipStatus(userProfile.id, 'free', false);
-                const updated = await SupabaseAuthService.getUserProfile(userProfile.id);
-                if (updated) setUserProfile(updated);
-              }
+            onCancelPremium={() => {
+              setIsPremium(false);
               StorageService.setPremium(false);
             }}
             onBackToHome={() => setActiveTab('home')}
@@ -548,18 +570,9 @@ export default function App() {
         )}
       </main>
 
-      {/* 4. Floating Adsterra Social Bar Ad - If not VIP */}
-      {!isVip && settings.sectionsVisibility.adsNative && socialBarAdSlot && socialBarAdSlot.enabled && (
+      {!isPremium && settings.sectionsVisibility.adsNative && socialBarAdSlot && socialBarAdSlot.enabled && (
         <AdBanner slot={socialBarAdSlot} position="social_bar" />
       )}
-
-      {/* 5. Modals */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        language={language}
-        onAuthSuccess={(prof) => setUserProfile(prof)}
-      />
 
       <MessageModal
         message={selectedMessage}
@@ -577,7 +590,6 @@ export default function App() {
         email={account?.address || ''}
       />
 
-      {/* 6. Footer */}
       <Footer
         setActiveTab={setActiveTab}
         customPages={customPages}
