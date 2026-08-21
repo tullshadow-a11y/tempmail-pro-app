@@ -46,7 +46,8 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   const [customError, setCustomError] = useState('');
   const [isChanging, setIsChanging] = useState(false);
 
-  const emailAddress = account?.address || 'Generating temporary email...';
+  const t = translations[language];
+  const emailAddress = account?.address || 'جاري إنشاء بريد إلكتروني مؤقت...';
 
   // Format countdown mm:ss (e.g. 09:59 or 00:10)
   const formatCountdown = (seconds: number) => {
@@ -76,12 +77,12 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
   const handleApplyCustomEmail = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customUsername.trim()) {
-      setCustomError('Please enter a username');
+      setCustomError('يرجى إدخال اسم المستخدِم');
       return;
     }
     const cleanUser = customUsername.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '');
     if (cleanUser.length < 3) {
-      setCustomError('Username must be at least 3 characters');
+      setCustomError('يجب أن يتكون اسم المستخدم من 3 أحرف على الأقل');
       return;
     }
 
@@ -121,7 +122,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
       <div className="relative overflow-hidden rounded-3xl bg-slate-900/95 border border-slate-700/80 shadow-2xl p-6 sm:p-8 backdrop-blur-xl">
         {/* Glow Effects */}
         <div className="absolute -top-24 -right-24 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
 
         {/* Top Active Countdown Display & Card Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-800/80 mb-6">
@@ -224,14 +225,14 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
       {showCustomModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div
-            className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             onClick={() => !isChanging && setShowCustomModal(false)}
           />
 
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-md bg-slate-900 border border-slate-700/90 rounded-3xl p-6 shadow-2xl z-10"
+            className="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl z-10 text-start"
           >
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
@@ -248,20 +249,19 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
             <form onSubmit={handleApplyCustomEmail} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Username:
+                  {t.usernameLabel}
                 </label>
                 <input
                   type="text"
                   value={customUsername}
-                  onChange={(e) => setCustomUsername(e.target.value)}
-                  placeholder="e.g. user.test"
+                  onChange={(e) => setCustomUsername(e.target.value)}                  placeholder="e.g. user.test"
                   className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-emerald-400 font-mono focus:border-emerald-500 focus:outline-none placeholder-slate-600 text-left"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Select Domain:
+                  {t.domainLabel}
                 </label>
                 <div className="relative">
                   <select
@@ -275,7 +275,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="w-4 h-4 text-slate-400 absolute right-3 top-3.5 pointer-events-none" />
+                  <ChevronDown className="w-4 h-4 text-slate-400 absolute left-3 top-3.5 pointer-events-none" />
                 </div>
               </div>
 
@@ -289,7 +289,7 @@ export const EmailGeneratorCard: React.FC<EmailGeneratorCardProps> = ({
                 <button
                   type="submit"
                   disabled={isChanging}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-1.5"
                 >
                   {isChanging ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                   <span>Save</span>
