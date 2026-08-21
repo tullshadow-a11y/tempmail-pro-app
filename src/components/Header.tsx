@@ -102,13 +102,14 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
-            id="nav-link-faq"
-            onClick={() => setActiveTab('home')}
-            title={currentLang.code === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}
-            className="px-2 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 transition-all flex items-center justify-center"
-          >
-            <HelpCircle className="w-4 h-4 text-indigo-400" />
-          </button>
+  id="nav-link-faq"
+  onClick={() => setActiveTab('home')}
+  title={currentLang.code === 'ar' ? 'الأسئلة الشائعة' : 'FAQ'}
+  className="px-2 py-1.5 rounded-xl text-xs sm:text-sm font-bold text-slate-300 hover:text-white hover:bg-slate-800/60 transition"
+>
+  <HelpCircle className="w-4 h-4 text-indigo-400" />
+</button>
+
         </nav>
 
         {/* Right Controls: Multi-Language Selector & Theme */}
