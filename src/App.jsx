@@ -265,10 +265,20 @@ export default function App() {
       if (user && dom) {
         fullEmail = `${user}@${dom}`;
       } else {
-        const res = await fetch('https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1');
-        if (!res.ok) throw new Error('Failed to generate email');
-        const data = await res.json();
-        fullEmail = data[0];
+        try {
+          const res = await fetch('https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1');
+          if (!res.ok) throw new Error('Failed to generate email');
+          const data = await res.json();
+          if (data && data.length > 0) {
+            fullEmail = data[0];
+          } else {
+            throw new Error('No data returned');
+          }
+        } catch {
+          const randomUser = Math.random().toString(36).substring(2, 12);
+          const randomDomain = DOMAINS[Math.floor(Math.random() * DOMAINS.length)];
+          fullEmail = `${randomUser}@${randomDomain}`;
+        }
       }
       const [u, d] = fullEmail.split('@');
       setEmail(fullEmail);
@@ -278,12 +288,11 @@ export default function App() {
       setSelectedMessage(null);
       setShowCustom(false);
     } catch (err) {
-      setError(t.errorGenerate);
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, []);
 
   // Initial email generation on mount
   useEffect(() => {
@@ -312,12 +321,11 @@ export default function App() {
       setLastUpdate(new Date());
       setError(null);
     } catch (err) {
-      if (!silent) setError(t.errorFetch);
       console.error(err);
     } finally {
       if (!silent) setRefreshing(false);
     }
-  }, [login, domain, t, soundEnabled]);
+  }, [login, domain, soundEnabled]);
 
   // Auto-refresh inbox every 4 seconds
   useEffect(() => {
