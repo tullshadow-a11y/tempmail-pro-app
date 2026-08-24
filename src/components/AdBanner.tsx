@@ -1,6 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { ExternalLink, Info, Sparkles, ShieldCheck, X } from 'lucide-react';
-import { AdPosition, AdSlotConfig } from '../types';
 
 interface AdBannerProps {
   slot?: AdSlotConfig;
@@ -10,7 +8,6 @@ interface AdBannerProps {
 
 export const AdBanner: React.FC<AdBannerProps> = ({ slot, position = 'header', onDismissSocialBar }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [socialBarDismissed, setSocialBarDismissed] = React.useState(false);
 
   // Adsterra Native Banner script injection (30830719)
   useEffect(() => {
