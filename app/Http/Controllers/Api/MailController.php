@@ -2,39 +2,70 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Events\MessageReceivedEvent;
 use App\Http\Controllers\Controller;
+use App\Models\Inbox;
+use App\Models\Message;
+use App\Services\InboxManager;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Redis;
-use Illuminate\Support\Str;
 
 class MailController extends Controller
 {
-    public function generateInbox(): JsonResponse
+    protected InboxManager $inboxManager;
+
+    public function __construct(InboxManager $inboxManager)
     {
-        $domain = DB::table('domains')
-            ->where('type', 'public')
-            ->where('is_active', true)
-            ->inRandomOrder()
-            ->value('domain') ?? '1secmail.com';
+        $this->inboxManager = $inboxManager;
+    }
 
-        $username = Str::random(10);
-        $email = strtolower($username . '@' . $domain);
-        $ttl = 600; // 10 minutes TTL
-
-        Redis::setex("inbox:{$email}:meta", $ttl, json_encode([
-            'email' => $email,
-            'created_at' => now()->toIso8601String(),
-            'expires_at' => now()->addSeconds($ttl)->toIso8601String(),
-        ]));
+    public function generateInbox(Request $request): JsonResponse
+    {
+        $userId = $request->user()?->id;
+        $inbox = $this->inboxManager->createRandomInbox($userId, 'free');
 
         return response()->json([
-            'email' => $email,
-            'expires_in_seconds' => $ttl,
-            'expires_at' => now()->addSeconds($ttl)->toIso8601String(),
+            'email' => $inbox->email,
+            'local_part' => $inbox->local_part,
+            'domain' => $inbox->domain,
+            'expires_at' => $inbox->expires_at->toIso8601String(),
+            'expires_in_seconds' => now()->diffInSeconds($inbox->expires_at),
         ]);
+    }
+
+    public function createCustomInbox(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'alias' => 'required|string|alpha_dash|max:50',
+            'domain' => 'required|string',
+        ]);
+
+        $userId = $request->user()?->id;
+        $inbox = $this->inboxManager->createCustomInbox(
+            $validated['alias'],
+            $validated['domain'],
+            $userId,
+            'pro'
+        );
+
+        return response()->json($inbox, 201);
+    }
+
+    public function getMessages(string $email): JsonResponse
+    {
+        $messages = $this->inboxManager->getMessages(strtolower($email));
+        return response()->json($messages);
+    }
+
+    public function getMessage(string $email, string $messageId): JsonResponse
+    {
+        $inbox = Inbox::where('email', strtolower($email))->firstOrFail();
+        $message = Message::where('inbox_id', $inbox->id)
+            ->where('id', $messageId)
+            ->firstOrFail();
+
+        $message->update(['is_read' => true]);
+
+        return response()->json($message);
     }
 
     public function receiveInbound(Request $request): JsonResponse
@@ -42,48 +73,46 @@ class MailController extends Controller
         $validated = $request->validate([
             'recipient' => 'required|email',
             'sender' => 'required|string',
+            'sender_name' => 'nullable|string',
             'subject' => 'nullable|string',
-            'body' => 'nullable|string',
+            'body_html' => 'nullable|string',
+            'body_text' => 'nullable|string',
+            'attachments' => 'nullable|array',
+            'size_bytes' => 'nullable|integer',
         ]);
 
         $recipient = strtolower($validated['recipient']);
-        $msgId = uniqid('msg_', true);
+        $inbox = Inbox::where('email', $recipient)->where('is_active', true)->first();
 
-        $messageData = [
-            'id' => $msgId,
-            'recipient' => $recipient,
-            'sender' => $validated['sender'],
-            'from' => $validated['sender'],
-            'subject' => $validated['subject'] ?? '(No Subject)',
-            'body' => $validated['body'] ?? '',
-            'textBody' => $validated['body'] ?? '',
-            'date' => now()->toIso8601String(),
-            'created_at' => now()->toIso8601String(),
-        ];
+        if (!$inbox) {
+            return response()->json(['error' => 'Inbox not found or inactive'], 404);
+        }
 
-        $cacheKey = "inbox:{$recipient}";
-
-        $messages = json_decode(Redis::get($cacheKey) ?: '[]', true);
-        array_unshift($messages, $messageData);
-
-        Redis::setex($cacheKey, 600, json_encode($messages));
-
-        event(new MessageReceivedEvent($recipient, $messageData));
+        $message = $this->inboxManager->storeMessage($inbox, $validated);
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Email received successfully',
-            'data' => $messageData,
+            'message' => 'Email processed successfully',
+            'data' => $message,
         ]);
     }
 
-    public function getMessages(string $email): JsonResponse
+    public function updateForward(Request $request, string $email): JsonResponse
     {
-        $recipient = strtolower($email);
-        $cacheKey = "inbox:{$recipient}";
+        $validated = $request->validate([
+            'forward_to' => 'required|email',
+        ]);
 
-        $messages = json_decode(Redis::get($cacheKey) ?: '[]', true);
+        $inbox = Inbox::where('email', strtolower($email))
+            ->where('user_id', $request->user()?->id)
+            ->firstOrFail();
 
-        return response()->json($messages);
+        $inbox->update(['forward_to' => $validated['forward_to']]);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Forwarding email updated successfully',
+            'inbox' => $inbox,
+        ]);
     }
 }
