@@ -8,6 +8,8 @@
 
   body {
     font-family: var(--font-cairo);
+    background-color: #0b0717;
+    color: #f1f5f9;
   }
 
   /* Custom scrollbar */
@@ -16,14 +18,14 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: transparent;
+    background: #0b0717;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.2);
+    background: rgba(168, 85, 247, 0.25);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(148, 163, 184, 0.4);
+    background: rgba(168, 85, 247, 0.5);
   }
 }
 
@@ -52,3 +54,13 @@
 .animate-float {
   animation: float-slow 4s ease-in-out infinite;
 }
+
+@keyframes purple-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(139, 92, 246, 0.4); }
+}
+
+.glow-purple {
+  animation: purple-glow 3s infinite ease-in-out;
+}
+

@@ -56,7 +56,7 @@ export interface MessageDetail extends MessageHeader {
   extractedOtp?: string;
 }
 
-export type AdPosition = 'header' | 'sidebar' | 'inbox_bottom' | 'social_bar' | 'native_card';
+export type AdPosition = 'header' | 'sidebar' | 'inbox_bottom' | 'social_bar' | 'native_card' | 'footer';
 
 export interface AdSlotConfig {
   id: string;
@@ -143,3 +143,21 @@ export interface PremiumPlan {
 }
 
 export type ActiveTab = 'home' | 'premium' | 'blog' | 'faq' | 'admin' | 'page' | 'post';
+
+export interface UserSession {
+  id: string;
+  email: string;
+  name: string;
+  isPremium: boolean;
+  premiumTier?: 'monthly' | 'yearly' | 'lifetime';
+  createdAt: string;
+}
+
+export interface DailyLimitInfo {
+  date: string;
+  count: number;
+  max: number;
+  remaining: number;
+  isLimitReached: boolean;
+  isPremium: boolean;
+}
