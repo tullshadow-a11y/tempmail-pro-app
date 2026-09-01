@@ -54,6 +54,7 @@ export interface MessageDetail extends MessageHeader {
   html?: string[];
   attachments?: MessageAttachment[];
   extractedOtp?: string;
+  extractedLinks?: string[];
 }
 
 export type AdPosition = 'header' | 'sidebar' | 'inbox_bottom' | 'social_bar' | 'native_card' | 'footer';
