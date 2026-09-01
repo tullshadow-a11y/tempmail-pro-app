@@ -1,10 +1,16 @@
 import { Account, DomainItem, MessageDetail, MessageHeader } from '../types';
 
 const API_BASE = 'https://api.mail.gw';
+const PROXY_ENDPOINT = '/.netlify/functions/fetch-mail';
 
 // Generate a random secure password for the temp account
 export function generateRandomPassword(): string {
-  return 'Temp_' + Math.random().toString(36).substring(2, 10) + '!9X';
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789!@#$%&*';
+  let pass = 'Flash_';
+  for (let i = 0; i < 8; i++) {
+    pass += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return pass + '9X!';
 }
 
 // Generate a clean random username
@@ -16,23 +22,21 @@ export function generateRandomUsername(): string {
 }
 
 // Extract OTP or verification code from text / html
-export function extractVerificationCode(text?: string, html?: string): string | null {
-  const content = (text || '') + ' ' + (html || '');
+export function extractVerificationCode(text?: string, html?: string, subject?: string): string | null {
+  const content = `${subject || ''} ${text || ''} ${html || ''}`;
   if (!content.trim()) return null;
 
-  // Patterns for OTP / verification codes
   const patterns = [
-    /(?:code|verification|otp|pin|password)\s*(?:is|:|:-|=|:)?\s*([0-9A-Z]{4,8})\b/i,
-    /(?:enter|use|input)\s+([0-9]{4,8})\b/i,
-    /\b([0-9]{6})\b/, // 6-digit standard OTP
-    /\b([0-9]{4})\b/, // 4-digit standard OTP
+    /(?:code|verification|otp|pin|password|رمز|كود)\s*(?:is|:|:-|=|:)?\s*([0-9A-Z]{4,8})\b/i,
+    /(?:enter|use|input|إدخال)\s+([0-9]{4,8})\b/i,
+    /\b([0-9]{6})\b/,
+    /\b([0-9]{4})\b/,
   ];
 
   for (const pattern of patterns) {
     const match = content.match(pattern);
     if (match && match[1]) {
       const code = match[1].trim();
-      // Ignore years or standard non-codes like 2024, 2025, 2026 if standalone
       if (code.length === 4 && (code.startsWith('19') || code.startsWith('20'))) {
         continue;
       }
@@ -43,28 +47,80 @@ export function extractVerificationCode(text?: string, html?: string): string | 
   return null;
 }
 
+// Resilient API Call with CORS & Netlify Function Proxy Fallback
+async function apiCall(endpoint: string, method: string = 'GET', bodyObj?: any, token?: string): Promise<{ ok: boolean; status: number; data: any }> {
+  const targetUrl = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
+
+  // 1. Try Direct Fetch first
+  try {
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    if (bodyObj) headers['Content-Type'] = 'application/json';
+
+    const res = await fetch(targetUrl, {
+      method,
+      headers,
+      body: bodyObj ? JSON.stringify(bodyObj) : undefined,
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      return { ok: true, status: res.status, data };
+    } else if (res.status === 401 || res.status === 422) {
+      let data = null;
+      try { data = await res.json(); } catch (e) {}
+      return { ok: false, status: res.status, data };
+    }
+  } catch (err) {
+    // Direct fetch failed (CORS or Network Error) -> Fallback to Netlify Proxy
+  }
+
+  // 2. Proxy Fallback via Netlify Function
+  try {
+    const proxyRes = await fetch(PROXY_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ targetUrl, method, body: bodyObj, token }),
+    });
+
+    if (proxyRes.ok) {
+      const data = await proxyRes.json();
+      return { ok: true, status: proxyRes.status, data };
+    } else {
+      let data = null;
+      try { data = await proxyRes.json(); } catch (e) {}
+      return { ok: false, status: proxyRes.status, data };
+    }
+  } catch (proxyErr) {
+    return { ok: false, status: 0, data: null };
+  }
+}
+
 export class MailGwService {
-  // Fetch available domains from mail.gw
+  // Fetch available active domains from mail.gw (https://api.mail.gw/domains)
   static async getDomains(): Promise<DomainItem[]> {
     try {
-      const response = await fetch(`${API_BASE}/domains?page=1`, {
-        headers: { 'Accept': 'application/json' },
-      });
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      const data = await response.json();
-      const members = data['hydra:member'] || data;
-      if (Array.isArray(members) && members.length > 0) {
-        return members.filter((d: any) => d.isActive !== false).map((d: any) => ({
-          id: d.id || d['@id'],
-          domain: d.domain,
-          isActive: d.isActive ?? true,
-          isPrivate: d.isPrivate ?? false,
-        }));
+      const res = await apiCall('/domains?page=1');
+      if (res.ok && res.data) {
+        const members = res.data['hydra:member'] || res.data;
+        if (Array.isArray(members) && members.length > 0) {
+          return members
+            .filter((d: any) => d.isActive !== false)
+            .map((d: any) => ({
+              id: d.id || d['@id'] || d.domain,
+              domain: d.domain,
+              isActive: d.isActive ?? true,
+              isPrivate: d.isPrivate ?? false,
+            }));
+        }
       }
     } catch (err) {
-      console.warn('Mail.gw domains fetch failed, using fallback domains:', err);
+      console.warn('Mail.gw domains fetch failed:', err);
     }
-    // Fallback active domains list
+
+    // High availability fallback domains
     return [
       { id: 'dom-1', domain: 'guerrillamail.biz', isActive: true },
       { id: 'dom-2', domain: 'tempmail.id', isActive: true },
@@ -73,45 +129,31 @@ export class MailGwService {
     ];
   }
 
-  // Create a new account
+  // Create a real account on mail.gw via POST /accounts and extract JWT Token via POST /token
   static async createAccount(username?: string, domain?: string): Promise<{ account: Account; token: string }> {
     const domains = await this.getDomains();
-    const selectedDomain = domain || (domains.length > 0 ? domains[0].domain : 'inboxbear.com');
+    const selectedDomain = domain || (domains.length > 0 ? domains[0].domain : 'guerrillamail.biz');
     const user = (username && username.trim()) ? username.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') : generateRandomUsername();
     const address = `${user}@${selectedDomain}`;
     const password = generateRandomPassword();
 
     try {
-      // 1. Create account on mail.gw
-      const createRes = await fetch(`${API_BASE}/accounts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ address, password }),
-      });
-
+      // 1. Create account on mail.gw (POST /accounts)
+      const createRes = await apiCall('/accounts', 'POST', { address, password });
       let accountId = 'acc_' + Date.now();
-      if (createRes.ok) {
-        const createData = await createRes.json();
-        accountId = createData.id || createData['@id'] || accountId;
+      if (createRes.ok && createRes.data) {
+        accountId = createRes.data.id || createRes.data['@id'] || accountId;
       }
 
-      // 2. Obtain JWT Token
-      const tokenRes = await fetch(`${API_BASE}/token`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({ address, password }),
-      });
+      // 2. Request JWT Token (POST /token)
+      const tokenRes = await apiCall('/token', 'POST', { address, password });
+      let token = '';
+      if (tokenRes.ok && tokenRes.data && tokenRes.data.token) {
+        token = tokenRes.data.token;
+      }
 
-      let token = 'jwt_mock_' + Math.random().toString(36).substring(2);
-      if (tokenRes.ok) {
-        const tokenData = await tokenRes.json();
-        token = tokenData.token || token;
+      if (!token) {
+        token = 'jwt_local_' + Math.random().toString(36).substring(2) + '_' + Date.now();
       }
 
       const account: Account = {
@@ -125,7 +167,7 @@ export class MailGwService {
 
       return { account, token };
     } catch (err) {
-      console.warn('Mail.gw create account network error, creating simulated active account:', err);
+      console.warn('Mail.gw create account error:', err);
       const fallbackAccount: Account = {
         id: 'acc_local_' + Date.now(),
         address,
@@ -138,19 +180,14 @@ export class MailGwService {
     }
   }
 
-  // Fetch messages for account
+  // Fetch messages (GET /messages) using Bearer token
   static async getMessages(token: string): Promise<MessageHeader[]> {
-    if (!token || token.startsWith('local_')) {
+    if (!token || token.startsWith('local_') || token.startsWith('jwt_local_')) {
       return [];
     }
 
     try {
-      const res = await fetch(`${API_BASE}/messages?page=1`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
+      const res = await apiCall('/messages?page=1', 'GET', null, token);
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -159,8 +196,7 @@ export class MailGwService {
         return [];
       }
 
-      const data = await res.json();
-      const list = data['hydra:member'] || data;
+      const list = res.data['hydra:member'] || res.data;
       if (!Array.isArray(list)) return [];
 
       return list.map((msg: any) => ({
@@ -186,22 +222,16 @@ export class MailGwService {
     }
   }
 
-  // Fetch single message detail
+  // Fetch single message detail (GET /messages/{id})
   static async getMessageDetail(id: string, token: string): Promise<MessageDetail | null> {
     try {
-      const res = await fetch(`${API_BASE}/messages/${id}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
-        },
-      });
-
-      if (!res.ok) return null;
-      const data = await res.json();
+      const res = await apiCall(`/messages/${id}`, 'GET', null, token);
+      if (!res.ok || !res.data) return null;
+      const data = res.data;
       
       const htmlArray = Array.isArray(data.html) ? data.html : (data.html ? [data.html] : []);
       const htmlContent = htmlArray.join('');
-      const otp = extractVerificationCode(data.text, htmlContent);
+      const otp = extractVerificationCode(data.text, htmlContent, data.subject);
 
       return {
         id: data.id || id,
@@ -228,30 +258,20 @@ export class MailGwService {
     }
   }
 
-  // Delete message
+  // Delete message (DELETE /messages/{id})
   static async deleteMessage(id: string, token: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/messages/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const res = await apiCall(`/messages/${id}`, 'DELETE', null, token);
       return res.ok || res.status === 204;
     } catch (err) {
       return false;
     }
   }
 
-  // Delete entire account
+  // Delete account (DELETE /accounts/{id})
   static async deleteAccount(accountId: string, token: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/accounts/${accountId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
+      const res = await apiCall(`/accounts/${accountId}`, 'DELETE', null, token);
       return res.ok || res.status === 204;
     } catch (err) {
       return false;

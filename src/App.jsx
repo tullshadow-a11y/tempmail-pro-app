@@ -34,6 +34,11 @@ import {
   Key
 } from 'lucide-react';
 
+import { MailGwService } from './services/mailGw';
+import { StorageService } from './services/storage';
+import { DailyLimitModal } from './components/DailyLimitModal';
+import { AuthModal } from './components/AuthModal';
+
 // ==================== Storage Keys & Initial Data ====================
 const STORAGE_KEYS = {
   ARTICLES: 'flashmail_articles',
@@ -158,6 +163,7 @@ function PremiumPage({ navigate }) {
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
+      StorageService.setPremium(true);
     }, 1500);
   };
 
@@ -195,13 +201,16 @@ function PremiumPage({ navigate }) {
         {success && (
           <div className="mb-8 p-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-center animate-fadeIn">
             <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
-            <h3 className="text-xl font-bold mb-1">تمت المحاكاة بنجاح!</h3>
-            <p className="text-sm text-emerald-300/80">سيتم دمج بوابات Stripe المباشرة فور تفعيل المفاتيح الإنتاجية.</p>
+            <h3 className="text-xl font-bold mb-1">تمت المحاكاة وتفعيل العضوية المميزة بنجاح!</h3>
+            <p className="text-sm text-emerald-300/80">استمتع بتوليد عدد غير محدود من الإيميلات اليومية.</p>
             <button
-              onClick={() => setSuccess(false)}
+              onClick={() => {
+                setSuccess(false);
+                navigate('/');
+              }}
               className="mt-4 px-6 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs"
             >
-              إغلاق
+              العودة للرئيسية
             </button>
           </div>
         )}
@@ -217,7 +226,7 @@ function PremiumPage({ navigate }) {
               <ul className="space-y-3 text-xs text-white/70 mb-8">
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> بريد مؤقت فوري</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> دومينات عامة مشتركة</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> صلاحية الرسائل: 24 ساعة</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> حد 10 إيميلات يومياً</li>
                 <li className="flex items-center gap-2 text-white/30"><X className="w-4 h-4 shrink-0" /> بدون إعلانات</li>
                 <li className="flex items-center gap-2 text-white/30"><X className="w-4 h-4 shrink-0" /> نطاق مخصص (Custom Domain)</li>
               </ul>
@@ -237,12 +246,12 @@ function PremiumPage({ navigate }) {
             </div>
             <div>
               <h3 className="text-xl font-bold text-white mb-2">Pro الشهرية</h3>
-              <p className="text-xs text-white/40 mb-6">للمحترفين وأصحاب الأعمال اليومية</p>
+              <p className="text-xs text-white/40 mb-6">لالمحترفين وأصحاب الأعمال اليومية</p>
               <div className="text-3xl font-black mb-6 text-purple-300">$4.99 <span className="text-xs text-white/40 font-normal">/ شهرياً</span></div>
               <ul className="space-y-3 text-xs text-white/70 mb-8">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> توليد إيميلات غير محدود</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> تجربة خالية تماماً من الإعلانات</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> حفظ الرسائل لمدة 30 يوماً</li>
-                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> دعم إنشاء أسماء بريد مخصصة unlimited</li>
                 <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> تنبيهات صوتية ولحظية للرسائل</li>
               </ul>
             </div>
@@ -736,6 +745,7 @@ export default function App() {
   // Email API States
   const [email, setEmail] = useState('');
   const [token, setToken] = useState('');
+  const [account, setAccount] = useState(null);
   const [messages, setMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -746,6 +756,12 @@ export default function App() {
   const [customUsername, setCustomUsername] = useState('');
   const [domains, setDomains] = useState([]);
   const [selectedDomain, setSelectedDomain] = useState('');
+
+  // Daily Limit & Auth States
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [dailyUsageInfo, setDailyUsageInfo] = useState(() => StorageService.getDailyLimitInfo(10));
+  const [currentUser, setCurrentUser] = useState(() => StorageService.getUserSession());
 
   const prevCountRef = useRef(0);
 
@@ -761,95 +777,86 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Mail Account Generator
-  const createMailGwAccount = useCallback(async (customUser = '', targetDomain = '') => {
+  // Sync Daily Limit Status
+  const updateDailyLimitState = useCallback(() => {
+    const info = StorageService.getDailyLimitInfo(10);
+    setDailyUsageInfo(info);
+    return info;
+  }, []);
+
+  // Mail Account Generator using mail.gw live API
+  const createMailGwAccount = useCallback(async (customUser = '', targetDomain = '', isInitial = false) => {
+    const currentLimitInfo = updateDailyLimitState();
+
+    // Limit check: if reached 10 emails (or isLimitReached) and not initial load or user manually creating email #11
+    if (!isInitial && currentLimitInfo.isLimitReached) {
+      setShowLimitModal(true);
+      return;
+    }
+
     setLoading(true);
     try {
-      let availableDomains = domains;
-      if (availableDomains.length === 0) {
-        const domRes = await fetch('https://api.mail.gw/domains');
-        if (domRes.ok) {
-          const domData = await domRes.json();
-          availableDomains = domData['hydra:member'] || [];
-          setDomains(availableDomains);
-        }
+      let activeDomains = domains;
+      if (activeDomains.length === 0) {
+        activeDomains = await MailGwService.getDomains();
+        setDomains(activeDomains);
       }
 
-      const activeDomain = targetDomain || (availableDomains[0]?.domain || 'mail.gw');
-      if (availableDomains.length > 0 && !selectedDomain) {
-        setSelectedDomain(activeDomain);
+      const domainToUse = targetDomain || selectedDomain || (activeDomains[0]?.domain || '');
+      const { account: newAccount, token: newToken } = await MailGwService.createAccount(customUser, domainToUse);
+
+      // Increment daily limit count if not initial page load
+      if (!isInitial) {
+        const updatedInfo = StorageService.incrementDailyEmailCount(10);
+        setDailyUsageInfo(updatedInfo);
       }
 
-      const username = customUser.trim() || Math.random().toString(36).substring(2, 11);
-      const address = `${username}@${activeDomain}`;
-      const password = 'Pass' + Math.random().toString(36).substring(2, 10) + '!';
-
-      await fetch('https://api.mail.gw/accounts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, password })
-      });
-
-      const tokenRes = await fetch('https://api.mail.gw/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, password })
-      });
-
-      if (!tokenRes.ok) throw new Error('Token error');
-      const tokenData = await tokenRes.json();
-
-      setEmail(address);
-      setToken(tokenData.token);
+      setAccount(newAccount);
+      setEmail(newAccount.address);
+      setToken(newToken);
       setMessages([]);
       setSelectedMessage(null);
       setShowCustom(false);
       setCustomUsername('');
+      if (newAccount.address.includes('@')) {
+        setSelectedDomain(newAccount.address.split('@')[1]);
+      }
     } catch (err) {
-      const fallbackUser = customUser.trim() || Math.random().toString(36).substring(2, 11);
-      setEmail(`${fallbackUser}@1secmail.com`);
-      setToken('fallback_token');
-      setMessages([]);
-      setSelectedMessage(null);
+      console.error('Account generation error:', err);
     } finally {
       setLoading(false);
     }
-  }, [domains, selectedDomain]);
+  }, [domains, selectedDomain, updateDailyLimitState]);
 
   useEffect(() => {
     if (currentPath === '/') {
-      createMailGwAccount();
+      createMailGwAccount('', '', true);
     }
   }, [createMailGwAccount, currentPath]);
 
-  // Fetch Messages
+  // Fetch Messages with 3-second Polling requirement
   const fetchMessages = useCallback(async (silent = false) => {
-    if (!token || token === 'fallback_token') return;
+    if (!token) return;
     if (!silent) setRefreshing(true);
     try {
-      const res = await fetch('https://api.mail.gw/messages', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const memberMsgs = data['hydra:member'] || [];
-        if (silent && memberMsgs.length > prevCountRef.current && prevCountRef.current > 0 && soundEnabled) {
-          playNotificationSound();
-        }
-        prevCountRef.current = memberMsgs.length;
-        setMessages(memberMsgs);
+      const fetchedMsgs = await MailGwService.getMessages(token);
+      if (silent && fetchedMsgs.length > prevCountRef.current && prevCountRef.current > 0 && soundEnabled) {
+        playNotificationSound();
       }
+      prevCountRef.current = fetchedMsgs.length;
+      setMessages(fetchedMsgs);
     } catch (e) {
-      console.error(e);
+      console.error('Error fetching messages:', e);
     } finally {
       if (!silent) setRefreshing(false);
     }
   }, [token, soundEnabled]);
 
+  // Live polling every 3 seconds for messages (GET /messages)
   useEffect(() => {
     if (!token || currentPath !== '/') return;
     fetchMessages(true);
-    const interval = setInterval(() => fetchMessages(true), 5000);
+    const interval = setInterval(() => fetchMessages(true), 3000);
     return () => clearInterval(interval);
   }, [token, fetchMessages, currentPath]);
 
@@ -858,6 +865,14 @@ export default function App() {
     await navigator.clipboard.writeText(email);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleOpenMessage = async (msgId) => {
+    if (!token) return;
+    const detail = await MailGwService.getMessageDetail(msgId, token);
+    if (detail) {
+      setSelectedMessage(detail);
+    }
   };
 
   // Route Views
@@ -924,6 +939,14 @@ export default function App() {
             ))}
 
             <button
+              onClick={() => setShowAuthModal(true)}
+              className="px-3.5 py-2 rounded-xl text-xs font-bold bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/30 text-purple-300 transition-all flex items-center gap-1.5"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>{currentUser ? currentUser.name : 'تسجيل الدخول'}</span>
+            </button>
+
+            <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="p-2 rounded-xl hover:bg-white/10 text-white/70 mr-1"
               title={soundEnabled ? 'كتم الصوت' : 'تشغيل الصوت'}
@@ -936,6 +959,22 @@ export default function App() {
         {/* Top Ad Unit */}
         <AdBanner label="إعلان علوي (Header Leaderboard)" />
 
+        {/* Daily Limit Notice Banner */}
+        <div className="mb-6 px-4 py-3 rounded-2xl bg-purple-950/40 border border-purple-500/30 flex items-center justify-between text-xs text-purple-200">
+          <div className="flex items-center gap-2 font-semibold">
+            <Zap className="w-4 h-4 text-amber-400" />
+            <span>الحد اليومي للإيميلات: {dailyUsageInfo.isPremium ? 'غير محدود (VIP)' : `${dailyUsageInfo.count} من 10 إيميلات (متبقي ${dailyUsageInfo.remaining})`}</span>
+          </div>
+          {!dailyUsageInfo.isPremium && (
+            <button
+              onClick={() => navigate('/premium')}
+              className="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-extrabold text-[11px] transition-all"
+            >
+              ترقية لـ Premium
+            </button>
+          )}
+        </div>
+
         {/* Main Email Box Card */}
         <div className="mb-8">
           <div className="relative group">
@@ -944,12 +983,12 @@ export default function App() {
               <div className="flex flex-col gap-6">
                 <div>
                   <label className="text-xs text-purple-300/70 uppercase tracking-wider font-bold mb-2 block">
-                    عنوان البريد المؤقت الخاص بك
+                    عنوان البريد المؤقت الخاص بك (mail.gw)
                   </label>
                   <div className="flex items-center gap-3 bg-black/40 rounded-2xl px-5 py-4 border border-white/10 shadow-inner">
                     <Globe className="w-6 h-6 text-purple-400 shrink-0" />
                     <span className="text-xl md:text-2xl font-mono text-white font-bold truncate tracking-wide">
-                      {email || 'جاري التوليد...'}
+                      {loading ? 'جاري التوليد من mail.gw...' : (email || 'جاري التوليد...')}
                     </span>
                   </div>
                 </div>
@@ -959,7 +998,7 @@ export default function App() {
                   <button
                     onClick={copyEmail}
                     disabled={!email}
-                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold transition-all disabled:opacity-30 active:scale-95 shadow-lg shadow-purple-600/30"
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold transition-all disabled:opacity-30 active:scale-95 shadow-lg shadow-purple-600/30 text-xs sm:text-sm"
                   >
                     {copied ? <CheckCircle2 className="w-5 h-5 text-emerald-300" /> : <Copy className="w-5 h-5" />}
                     <span>{copied ? 'تم النسخ!' : 'نسخ (Copy)'}</span>
@@ -968,7 +1007,7 @@ export default function App() {
                   <button
                     onClick={() => fetchMessages(false)}
                     disabled={refreshing || !token}
-                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold transition-all active:scale-95 text-xs sm:text-sm"
                   >
                     <RefreshCw className={`w-5 h-5 text-blue-400 ${refreshing ? 'animate-spin' : ''}`} />
                     <span>تحديث (Refresh)</span>
@@ -976,7 +1015,7 @@ export default function App() {
 
                   <button
                     onClick={() => setShowCustom(!showCustom)}
-                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold transition-all active:scale-95 text-xs sm:text-sm"
                   >
                     <Edit3 className="w-5 h-5 text-amber-400" />
                     <span>تغيير (Change)</span>
@@ -984,7 +1023,7 @@ export default function App() {
 
                   <button
                     onClick={() => createMailGwAccount()}
-                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-bold transition-all active:scale-95"
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-bold transition-all active:scale-95 text-xs sm:text-sm"
                   >
                     <Trash2 className="w-5 h-5 text-rose-400" />
                     <span>حذف (Delete)</span>
@@ -998,12 +1037,23 @@ export default function App() {
                       value={customUsername}
                       onChange={(e) => setCustomUsername(e.target.value)}
                       placeholder="أدخل الاسم المخصص..."
-                      className="w-full md:flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500"
+                      className="w-full md:flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500 text-xs sm:text-sm font-mono"
                     />
+                    <select
+                      value={selectedDomain}
+                      onChange={(e) => setSelectedDomain(e.target.value)}
+                      className="w-full md:w-auto bg-[#1a1a2e] border border-white/10 rounded-xl px-3 py-3 text-xs sm:text-sm text-purple-200 focus:outline-none"
+                    >
+                      {domains.map((dom) => (
+                        <option key={dom.id} value={dom.domain}>
+                          @{dom.domain}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       onClick={() => createMailGwAccount(customUsername, selectedDomain)}
                       disabled={loading}
-                      className="w-full md:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold transition-all shrink-0"
+                      className="w-full md:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold transition-all shrink-0 text-xs sm:text-sm"
                     >
                       توليد البريد
                     </button>
@@ -1020,7 +1070,7 @@ export default function App() {
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-white/5">
               <div className="flex items-center gap-2">
                 <Inbox className="w-5 h-5 text-purple-400" />
-                <h2 className="font-bold text-white">صندوق الوارد</h2>
+                <h2 className="font-bold text-white">صندوق الوارد (Live Polling 3s)</h2>
                 <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold">
                   {messages.length}
                 </span>
@@ -1031,23 +1081,19 @@ export default function App() {
               {messages.length === 0 ? (
                 <div className="py-16 text-center px-4">
                   <Inbox className="w-8 h-8 text-white/20 mx-auto mb-2" />
-                  <p className="text-white/40 text-xs">في انتظار وصول الرسائل...</p>
+                  <p className="text-white/40 text-xs">في انتظار وصول الرسائل عبر mail.gw...</p>
                 </div>
               ) : (
                 <div className="divide-y divide-white/5">
                   {messages.map((msg) => (
                     <button
                       key={msg.id}
-                      onClick={async () => {
-                        const res = await fetch(`https://api.mail.gw/messages/${msg.id}`, {
-                          headers: { Authorization: `Bearer ${token}` }
-                        });
-                        if (res.ok) setSelectedMessage(await res.json());
-                      }}
+                      onClick={() => handleOpenMessage(msg.id)}
                       className="w-full text-right p-4 transition-all hover:bg-white/5"
                     >
-                      <p className="text-xs font-bold text-purple-300">{msg.from?.address}</p>
+                      <p className="text-xs font-bold text-purple-300">{msg.from?.address || msg.from?.name}</p>
                       <p className="text-sm font-semibold text-white truncate">{msg.subject || '(بدون موضوع)'}</p>
+                      {msg.intro && <p className="text-xs text-white/40 truncate mt-1">{msg.intro}</p>}
                     </button>
                   ))}
                 </div>
@@ -1057,19 +1103,28 @@ export default function App() {
 
           <div className="lg:col-span-3 bg-[#12121a]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 min-h-[300px]">
             {!selectedMessage ? (
-              <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="flex flex-col items-center justify-center h-full text-center py-12">
                 <Mail className="w-10 h-10 text-white/20 mb-2" />
-                <p className="text-white/40 text-xs">اختر رسالة لقراءة تفاصيلها</p>
+                <p className="text-white/40 text-xs">اختر رسالة من صندوق الوارد لقراءة تفاصيلها</p>
               </div>
             ) : (
               <div>
                 <h3 className="text-lg font-bold text-white mb-2">{selectedMessage.subject}</h3>
-                <p className="text-xs text-purple-300 mb-4">من: {selectedMessage.from?.address}</p>
-                <div className="prose prose-invert max-w-none text-xs text-white/80">
-                  {selectedMessage.html ? (
+                <p className="text-xs text-purple-300 mb-1">من: {selectedMessage.from?.address} ({selectedMessage.from?.name})</p>
+                <p className="text-[11px] text-white/40 mb-4">التاريخ: {new Date(selectedMessage.createdAt).toLocaleString('ar-EG')}</p>
+
+                {selectedMessage.extractedOtp && (
+                  <div className="mb-4 p-3 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-200 text-xs font-mono font-bold flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-purple-400" />
+                    <span>رمز التفعيل / Verification Code: <span className="text-amber-300 text-sm">{selectedMessage.extractedOtp}</span></span>
+                  </div>
+                )}
+
+                <div className="prose prose-invert max-w-none text-xs text-white/80 border-t border-white/10 pt-4">
+                  {selectedMessage.html && selectedMessage.html.length > 0 ? (
                     <div dangerouslySetInnerHTML={{ __html: selectedMessage.html[0] }} />
                   ) : (
-                    <p>{selectedMessage.text}</p>
+                    <p className="whitespace-pre-wrap">{selectedMessage.text || selectedMessage.intro}</p>
                   )}
                 </div>
               </div>
@@ -1152,6 +1207,33 @@ export default function App() {
           <p>© {new Date().getFullYear()} فلاش ميل — جميع الحقوق محفوظة</p>
         </footer>
       </div>
+
+      {/* Daily Limit Modal (Shown when email limit reaches 10) */}
+      <DailyLimitModal
+        isOpen={showLimitModal}
+        onClose={() => setShowLimitModal(false)}
+        onUpgradePremium={() => navigate('/premium')}
+        onOpenLogin={() => setShowAuthModal(true)}
+        dailyUsage={dailyUsageInfo}
+      />
+
+      {/* Auth Modal (Login / Sign Up) */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        currentUser={currentUser}
+        onLoginSuccess={(session) => {
+          setCurrentUser(session);
+          StorageService.saveUserSession(session);
+          setDailyUsageInfo(StorageService.getDailyLimitInfo(10));
+        }}
+        onLogout={() => {
+          setCurrentUser(null);
+          StorageService.saveUserSession(null);
+          setDailyUsageInfo(StorageService.getDailyLimitInfo(10));
+        }}
+        onUpgradeToPremium={() => navigate('/premium')}
+      />
     </div>
   );
 }

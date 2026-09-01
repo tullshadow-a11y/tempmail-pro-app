@@ -1,4 +1,4 @@
-import { Account, AdSlotConfig, BlogPost, CustomPage, MessageDetail, SiteSettings } from '../types';
+import { Account, AdSlotConfig, BlogPost, CustomPage, DailyLimitInfo, MessageDetail, SiteSettings, UserSession } from '../types';
 
 const STORAGE_KEYS = {
   ACCOUNT: 'tempmail_account',
@@ -12,6 +12,8 @@ const STORAGE_KEYS = {
   ANALYTICS: 'tempmail_analytics',
   PREMIUM_STATUS: 'tempmail_premium_user',
   GENERATED_COUNT: 'tempmail_generated_count',
+  USER_SESSION: 'tempmail_user_session',
+  DAILY_USAGE: 'tempmail_daily_usage',
 };
 
 export const DEFAULT_AD_SLOTS: AdSlotConfig[] = [
@@ -336,6 +338,89 @@ export class StorageService {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  // User session
+  static getUserSession(): UserSession | null {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.USER_SESSION);
+      return data ? JSON.parse(data) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  static saveUserSession(session: UserSession | null): void {
+    try {
+      if (session) {
+        localStorage.setItem(STORAGE_KEYS.USER_SESSION, JSON.stringify(session));
+        if (session.isPremium) {
+          this.setPremium(true);
+        }
+      } else {
+        localStorage.removeItem(STORAGE_KEYS.USER_SESSION);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // Daily Limit (10 emails / day)
+  static getDailyLimitInfo(maxLimit: number = 10): DailyLimitInfo {
+    const today = new Date().toISOString().split('T')[0];
+    const isPremiumUser = this.isPremium() || (this.getUserSession()?.isPremium ?? false);
+
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.DAILY_USAGE);
+      let usage = raw ? JSON.parse(raw) : { date: today, count: 0 };
+
+      // Reset count if stored date is not today
+      if (usage.date !== today) {
+        usage = { date: today, count: 0 };
+        localStorage.setItem(STORAGE_KEYS.DAILY_USAGE, JSON.stringify(usage));
+      }
+
+      const count = Number(usage.count) || 0;
+      const remaining = isPremiumUser ? 9999 : Math.max(0, maxLimit - count);
+      const isLimitReached = !isPremiumUser && count >= maxLimit;
+
+      return {
+        date: today,
+        count,
+        max: maxLimit,
+        remaining,
+        isLimitReached,
+        isPremium: isPremiumUser,
+      };
+    } catch {
+      return {
+        date: today,
+        count: 0,
+        max: maxLimit,
+        remaining: isPremiumUser ? 9999 : maxLimit,
+        isLimitReached: false,
+        isPremium: isPremiumUser,
+      };
+    }
+  }
+
+  static incrementDailyEmailCount(maxLimit: number = 10): DailyLimitInfo {
+    const info = this.getDailyLimitInfo(maxLimit);
+    if (info.isPremium) {
+      return info;
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const newCount = info.count + 1;
+    const usage = { date: today, count: newCount };
+
+    try {
+      localStorage.setItem(STORAGE_KEYS.DAILY_USAGE, JSON.stringify(usage));
+    } catch (e) {
+      console.error(e);
+    }
+
+    return this.getDailyLimitInfo(maxLimit);
   }
 
   // Ad slots
