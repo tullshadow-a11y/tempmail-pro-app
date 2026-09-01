@@ -3,8 +3,6 @@ import {
   Mail,
   Copy,
   RefreshCw,
-  Inbox,
-  Clock,
   Trash2,
   Eye,
   ArrowLeft,
@@ -15,152 +13,118 @@ import {
   Globe,
   Shield,
   X,
-  Pin,
-  Printer,
-  Download,
   Volume2,
   VolumeX,
-  QrCode,
+  Lock,
+  Zap,
+  Inbox,
+  Edit3,
+  Plus,
   Settings,
-  ExternalLink
+  LayoutDashboard,
+  FileText,
+  Link as LinkIcon,
+  LogOut,
+  Check,
+  CreditCard,
+  Star,
+  ExternalLink,
+  BookOpen,
+  User,
+  Key
 } from 'lucide-react';
 
-// ==================== Translations ====================
-const translations = {
-  en: {
-    appName: 'FlashMail',
-    tagline: 'Professional Temporary Email Service',
-    yourEmail: 'Your Temporary Email',
-    copy: 'Copy',
-    copied: 'Copied!',
-    generateNew: 'Generate New Email',
-    refreshInbox: 'Refresh Inbox',
-    clearInbox: 'Clear Inbox',
-    customUsername: 'Custom Username',
-    enterUsername: 'Enter username...',
-    selectDomain: 'Select Domain',
-    createEmail: 'Create Email',
-    inbox: 'Inbox',
-    emptyInbox: 'Your inbox is empty',
-    waitingEmails: 'Waiting for incoming emails...',
-    selectEmail: 'Select an email to read',
-    chooseMessage: 'Choose a message from your inbox',
-    from: 'From',
-    subject: 'Subject',
-    date: 'Date',
-    noSubject: '(No Subject)',
-    noContent: 'No content available',
-    attachments: 'Attachments',
-    anonymous: 'Anonymous',
-    autoRefresh: 'Auto-refresh: 4s',
-    updated: 'Updated',
-    justNow: 'Just now',
-    secondsAgo: 's ago',
-    minutesAgo: 'm ago',
-    pinMessage: 'Pin Message',
-    unpinMessage: 'Unpin Message',
-    pinnedMessages: 'Pinned Messages',
-    print: 'Print',
-    download: 'Download',
-    close: 'Close',
-    qrCode: 'QR Code',
-    scanQr: 'Scan this QR code to get the email address',
-    soundOn: 'Sound On',
-    soundOff: 'Sound Off',
-    newEmailNotification: 'New email received!',
-    errorGenerate: 'Failed to generate email. Please try again.',
-    errorFetch: 'Failed to fetch messages. Will retry automatically.',
-    errorRead: 'Failed to read message content.',
-    adLabel: 'Advertisement',
-    deleteConfirm: 'Are you sure you want to clear all messages?',
-    language: 'Language',
-    english: 'English',
-    arabic: 'العربية'
-  },
-  ar: {
-    appName: 'فلاش ميل',
-    tagline: 'خدمة البريد المؤقت الاحترافية',
-    yourEmail: 'بريدك المؤقت',
-    copy: 'نسخ',
-    copied: 'تم النسخ!',
-    generateNew: 'إنشاء بريد جديد',
-    refreshInbox: 'تحديث الصندوق',
-    clearInbox: 'مسح الصندوق',
-    customUsername: 'اسم مستخدم مخصص',
-    enterUsername: 'أدخل اسم المستخدم...',
-    selectDomain: 'اختر النطاق',
-    createEmail: 'إنشاء البريد',
-    inbox: 'صندوق الوارد',
-    emptyInbox: 'صندوق الوارد فارغ',
-    waitingEmails: 'في انتظار الرسائل الواردة...',
-    selectEmail: 'اختر رسالة لقراءتها',
-    chooseMessage: 'اختر رسالة من صندوق الوارد',
-    from: 'من',
-    subject: 'الموضوع',
-    date: 'التاريخ',
-    noSubject: '(بلا موضوع)',
-    noContent: 'لا يوجد محتوى متاح',
-    attachments: 'المرفقات',
-    anonymous: 'مجهول الهوية',
-    autoRefresh: 'تحديث تلقائي: ٤ ث',
-    updated: 'تم التحديث',
-    justNow: 'الآن',
-    secondsAgo: 'ث',
-    minutesAgo: 'د',
-    pinMessage: 'تثبيت الرسالة',
-    unpinMessage: 'إلغاء التثبيت',
-    pinnedMessages: 'الرسائل المثبتة',
-    print: 'طباعة',
-    download: 'تحميل',
-    close: 'إغلاق',
-    qrCode: 'رمز الاستجابة السريعة',
-    scanQr: 'امسح هذا الرمز للحصول على عنوان البريد',
-    soundOn: 'تشغيل الصوت',
-    soundOff: 'كتم الصوت',
-    newEmailNotification: 'تم استلام رسالة جديدة!',
-    errorGenerate: 'فشل إنشاء البريد. حاول مرة أخرى.',
-    errorFetch: 'فشل جلب الرسائل. سيتم إعادة المحاولة تلقائياً.',
-    errorRead: 'فشل قراءة محتوى الرسالة.',
-    adLabel: 'إعلان',
-    deleteConfirm: 'هل أنت متأكد من مسح جميع الرسائل؟',
-    language: 'اللغة',
-    english: 'English',
-    arabic: 'العربية'
-  }
+// ==================== Storage Keys & Initial Data ====================
+const STORAGE_KEYS = {
+  ARTICLES: 'flashmail_articles',
+  HEADER_LINKS: 'flashmail_header_links',
+  FOOTER_LINKS: 'flashmail_footer_links',
+  ADMIN_AUTH: 'flashmail_admin_auth'
 };
 
-const DOMAINS = ['1secmail.com', '1secmail.net', '1secmail.org', 'wwjmp.com', 'esiix.com', 'xojxe.com', 'yoggm.com'];
+const DEFAULT_ARTICLES = [
+  {
+    id: '1',
+    title: 'دليل حماية الخصوصية الرقمية ومنع تتبع البريد الإلكتروني',
+    slug: 'digital-privacy-guide',
+    excerpt: 'تعرف على أفضل الممارسات والأدوات لحماية هويتك على الإنترنت واستخدام البريد المؤقت للحد من الرسائل المزعجة والتتبع.',
+    content: `في العصر الرقمي الحالي، أصبحت الخصوصية واحدة من أكبر التحديات التي تواجه المستخدمين. تقوم الكثير من المواقع والخدمات برصد بيانات المستخدمين واستغلال بريدهم الإلكتروني لإرسال ملايين الرسائل الترويجية المزعجة (Spam).
+
+### لماذا يجب عليك استخدام بريد إلكتروني مؤقت؟
+
+1. **حماية بريدك الشخصي:** تجنب وضع بريدك الشخصي الأساسي في منتديات أو مواقع غير موثوقة.
+2. **الحد من التتبع:** تمنع خدمات البريد المؤقت مثل "فلاش ميل" شركات الإعلانات من ربط نشاطك عبر الإنترنت بهويتك الحقيقية.
+3. **تفعيل الخدمات بسرعة:** يمكنك استقبال أكواد التفعيل وتأكيد الحسابات خلال ثوانٍ معدودة دون الحاجة لإنشاء حسابات جديدة معقدة.`,
+    tags: 'خصوصية, أمان, بريد مؤقت',
+    date: '2025-02-20'
+  },
+  {
+    id: '2',
+    title: 'كيف تتجنب الوقوع في فخ الهجمات الإلكترونية والرسائل الاحتيالية',
+    slug: 'avoid-phishing-attacks',
+    excerpt: 'خطوات عملية لكشف الرسائل المزيفة والروابط المشبوهة لحماية معلوماتك الحساسة عند التسجيل في الخدمات الإلكترونية.',
+    content: `تعتبر هجمات الهندسة الاجتماعية والبريد الاحتيالي (Phishing) من أكثر الوسائل شائعة لاختراق الحسابات الشخصية.
+
+### أهم النصائح للحماية:
+
+- **تحقق من اسم المرسب بدقة:** تحقق دائماً من عنوان بريد المنسل وليس الاسم فقط.
+- **لا تضغط على الرابط المجهولة:** استخدم بريداً مؤقتاً لاختبار الخدمات والتسجيل الأولي قبل إدخال أية بيانات شخصية.
+- **استخدم بريداً مؤقتاً للتسجيلات المترددة:** عند استخدام مواقع تستخدمها لمرة واحدة، يكون البريد المؤقت هو الخيار الآمن دائماً.`,
+    tags: 'أمان, هجمات, بريد',
+    date: '2025-02-22'
+  }
+];
+
+const DEFAULT_HEADER_LINKS = [
+  { id: '1', label: 'الرئيسية', url: '/', isExternal: false },
+  { id: '2', label: 'الخطة المميزة Premium', url: '/premium', isExternal: false },
+  { id: '3', label: 'المدونة', url: '#blog', isExternal: false },
+  { id: '4', label: 'لوحة التحكم', url: '/admin-secret-dashboard', isExternal: false }
+];
+
+const DEFAULT_FOOTER_LINKS = [
+  { id: '1', label: 'الرئيسية', url: '/', isExternal: false },
+  { id: '2', label: 'الاشتراك المميز (VIP)', url: '/premium', isExternal: false },
+  { id: '3', label: 'سياسة الخصوصية', url: '#privacy', isExternal: false },
+  { id: '4', label: 'لوحة الإدارة', url: '/admin-secret-dashboard', isExternal: false }
+];
+
+// ==================== Helper Hook for LocalStorage ====================
+function useLocalStorage(key, initialValue) {
+  const [value, setValue] = useState(() => {
+    try {
+      const saved = localStorage.getItem(key);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('LocalStorage read error:', e);
+    }
+    return initialValue;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch (e) {
+      console.error('LocalStorage write error:', e);
+    }
+  }, [key, value]);
+
+  return [value, setValue];
+}
 
 // ==================== AdBanner Component ====================
-const AdBanner = ({ t }) => {
-  useEffect(() => {
-    const container = document.getElementById('ad-container-30830719');
-    if (container && !container.hasChildNodes()) {
-      try {
-        const script = document.createElement('script');
-        script.type = 'text/javascript';
-        script.async = true;
-        script.src = '//www.highperformanceformat.com/30830719/invoke.js';
-        container.appendChild(script);
-      } catch (e) {
-        console.error("Ad loading error", e);
-      }
-    }
-  }, []);
-
+const AdBanner = ({ label = 'إعلان Google AdSense' }) => {
   return (
-    <div className="w-full my-4 flex justify-center">
-      <div
-        id="ad-container-30830719"
-        className="min-h-[90px] w-full max-w-[728px] bg-white/5 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden"
-      >
-        <span className="text-white/20 text-xs">{t.adLabel}</span>
+    <div className="w-full my-6 flex justify-center">
+      <div className="min-h-[100px] w-full max-w-[728px] bg-white/5 rounded-2xl border border-dashed border-white/20 flex flex-col items-center justify-center p-4 text-center overflow-hidden backdrop-blur-md transition-all hover:border-purple-500/40">
+        <span className="text-xs font-semibold text-purple-400/80 mb-1">=== {label} ===</span>
+        <span className="text-white/20 text-xs font-mono">AdSense Unit Placeholder (Responsive 728x90)</span>
       </div>
     </div>
   );
 };
 
-// ==================== Notification Sound ====================
+// ==================== Audio Notification ====================
 const playNotificationSound = () => {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -179,791 +143,1015 @@ const playNotificationSound = () => {
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.5);
   } catch (e) {
-    console.error('Sound play error', e);
+    console.error('Audio play error', e);
   }
 };
 
-// ==================== Format Date ====================
-const formatDate = (dateStr, lang) => {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toLocaleString(lang === 'ar' ? 'ar-SA' : 'en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
+// ==================== Premium Page Component ====================
+function PremiumPage({ navigate }) {
+  const [selectedPlan, setSelectedPlan] = useState('monthly');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+
+  const handleStripeCheckout = (planName, price) => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      setSuccess(true);
+    }, 1500);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#0a0a0f] text-white py-12 px-4" dir="rtl">
+      <div className="max-w-5xl mx-auto">
+        <div className="flex items-center justify-between mb-10 pb-6 border-b border-white/10">
+          <button
+            onClick={() => navigate('/')}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-sm font-semibold transition-all"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span>العودة للرئيسية</span>
+          </button>
+          <div className="flex items-center gap-2">
+            <Zap className="w-6 h-6 text-amber-400" />
+            <h1 className="text-2xl font-black bg-gradient-to-r from-amber-300 via-purple-300 to-blue-300 bg-clip-text text-transparent">
+              فلاش ميل برو (FlashMail Premium)
+            </h1>
+          </div>
+        </div>
+
+        {/* Hero Section */}
+        <div className="text-center mb-12">
+          <span className="px-4 py-1.5 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold border border-purple-500/30 inline-block mb-4">
+            خطط اشتراك بدون حدود
+          </span>
+          <h2 className="text-3xl md:text-5xl font-black mb-4">ارتقِ بتجربتك لحماية خصوصيتك</h2>
+          <p className="text-white/50 max-w-2xl mx-auto text-sm md:text-base">
+            احصل على دومينات خاصة مخصصة، دعم الرسائل المباشر عبر WebSocket، وسعة غير محدودة دون أية إعلانات.
+          </p>
+        </div>
+
+        {/* Success Modal Notification */}
+        {success && (
+          <div className="mb-8 p-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-200 text-center animate-fadeIn">
+            <CheckCircle2 className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
+            <h3 className="text-xl font-bold mb-1">تمت المحاكاة بنجاح!</h3>
+            <p className="text-sm text-emerald-300/80">سيتم دمج بوابات Stripe المباشرة فور تفعيل المفاتيح الإنتاجية.</p>
+            <button
+              onClick={() => setSuccess(false)}
+              className="mt-4 px-6 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs"
+            >
+              إغلاق
+            </button>
+          </div>
+        )}
+
+        {/* Pricing Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+          {/* Free Tier */}
+          <div className="bg-[#12121a] border border-white/10 rounded-3xl p-6 flex flex-col justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-white mb-2">المجانية</h3>
+              <p className="text-xs text-white/40 mb-6">للاستخدام الشخصي اليومي والسريع</p>
+              <div className="text-3xl font-black mb-6">$0 <span className="text-xs text-white/40 font-normal">/ للأبد</span></div>
+              <ul className="space-y-3 text-xs text-white/70 mb-8">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> بريد مؤقت فوري</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> دومينات عامة مشتركة</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-emerald-400 shrink-0" /> صلاحية الرسائل: 24 ساعة</li>
+                <li className="flex items-center gap-2 text-white/30"><X className="w-4 h-4 shrink-0" /> بدون إعلانات</li>
+                <li className="flex items-center gap-2 text-white/30"><X className="w-4 h-4 shrink-0" /> نطاق مخصص (Custom Domain)</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold transition-all"
+            >
+              الخطة الحالية
+            </button>
+          </div>
+
+          {/* Pro Monthly Tier */}
+          <div className="relative bg-[#12121a] border-2 border-purple-500/80 rounded-3xl p-6 flex flex-col justify-between shadow-2xl shadow-purple-500/20">
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-[10px] font-black uppercase tracking-wider">
+              الأكثر شعبية
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-white mb-2">Pro الشهرية</h3>
+              <p className="text-xs text-white/40 mb-6">للمحترفين وأصحاب الأعمال اليومية</p>
+              <div className="text-3xl font-black mb-6 text-purple-300">$4.99 <span className="text-xs text-white/40 font-normal">/ شهرياً</span></div>
+              <ul className="space-y-3 text-xs text-white/70 mb-8">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> تجربة خالية تماماً من الإعلانات</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> حفظ الرسائل لمدة 30 يوماً</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> دعم إنشاء أسماء بريد مخصصة unlimited</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-purple-400 shrink-0" /> تنبيهات صوتية ولحظية للرسائل</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => handleStripeCheckout('Pro Monthly', '$4.99')}
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+              <span>اشترك عبر Stripe</span>
+            </button>
+          </div>
+
+          {/* VIP Annual Tier */}
+          <div className="bg-[#12121a] border border-white/10 rounded-3xl p-6 flex flex-col justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-amber-300 mb-2">VIP السنوية</h3>
+              <p className="text-xs text-white/40 mb-6">وفر أكثر من 40% مع الدعم الخاص</p>
+              <div className="text-3xl font-black mb-6 text-amber-300">$39.99 <span className="text-xs text-white/40 font-normal">/ سنوياً</span></div>
+              <ul className="space-y-3 text-xs text-white/70 mb-8">
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-400 shrink-0" /> كل ميزات خطة Pro</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-400 shrink-0" /> ربط دومين خاص باسم موقعك (Custom Domain)</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-400 shrink-0" /> دعم فني مباشر VIP 24/7</li>
+                <li className="flex items-center gap-2"><Check className="w-4 h-4 text-amber-400 shrink-0" /> وصول مبكر لأحدث الميزات والمكتبات</li>
+              </ul>
+            </div>
+            <button
+              onClick={() => handleStripeCheckout('VIP Yearly', '$39.99')}
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-black text-xs transition-all shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Star className="w-4 h-4 fill-black" />}
+              <span>احصل على الاشتراك السنوي</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ==================== Admin Secret Dashboard Component ====================
+function AdminDashboard({ navigate, articles, setArticles, headerLinks, setHeaderLinks, footerLinks, setFooterLinks }) {
+  const [adminAuth, setAdminAuth] = useLocalStorage(STORAGE_KEYS.ADMIN_AUTH, false);
+  const [usernameInput, setUsernameInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [activeTab, setActiveTab] = useState('articles'); // 'articles' | 'links'
+
+  // New Article Form State
+  const [newArticle, setNewArticle] = useState({ title: '', excerpt: '', content: '', tags: '' });
+  const [editingArticleId, setEditingArticleId] = useState(null);
+
+  // Link Form State
+  const [newLink, setNewLink] = useState({ label: '', url: '', isHeader: true, isExternal: false });
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (usernameInput === 'admin' && passwordInput === 'admin123') {
+      setAdminAuth(true);
+      setLoginError('');
+    } else {
+      setLoginError('اسم المستخدم أو كلمة المرور غير صحيحة');
+    }
+  };
+
+  const handleLogout = () => {
+    setAdminAuth(false);
+  };
+
+  const handleSaveArticle = (e) => {
+    e.preventDefault();
+    if (!newArticle.title || !newArticle.content) return;
+
+    const slug = newArticle.title.toLowerCase().replace(/[^\w\u0600-\u06FF]+/g, '-');
+
+    if (editingArticleId) {
+      setArticles(articles.map(a => a.id === editingArticleId ? { ...a, ...newArticle, slug } : a));
+      setEditingArticleId(null);
+    } else {
+      const created = {
+        id: Date.now().toString(),
+        ...newArticle,
+        slug,
+        date: new Date().toISOString().split('T')[0]
+      };
+      setArticles([created, ...articles]);
+    }
+
+    setNewArticle({ title: '', excerpt: '', content: '', tags: '' });
+  };
+
+  const handleDeleteArticle = (id) => {
+    setArticles(articles.filter(a => a.id !== id));
+  };
+
+  const handleEditArticle = (article) => {
+    setEditingArticleId(article.id);
+    setNewArticle({
+      title: article.title,
+      excerpt: article.excerpt,
+      content: article.content,
+      tags: article.tags
+    });
+  };
+
+  const handleAddLink = (e) => {
+    e.preventDefault();
+    if (!newLink.label || !newLink.url) return;
+
+    const item = { id: Date.now().toString(), label: newLink.label, url: newLink.url, isExternal: newLink.isExternal };
+    if (newLink.isHeader) {
+      setHeaderLinks([...headerLinks, item]);
+    } else {
+      setFooterLinks([...footerLinks, item]);
+    }
+
+    setNewLink({ label: '', url: '', isHeader: true, isExternal: false });
+  };
+
+  const handleDeleteHeaderLink = (id) => {
+    setHeaderLinks(headerLinks.filter(l => l.id !== id));
+  };
+
+  const handleDeleteFooterLink = (id) => {
+    setFooterLinks(footerLinks.filter(l => l.id !== id));
+  };
+
+  // Protected Login Screen
+  if (!adminAuth) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0f] text-white flex items-center justify-center p-4" dir="rtl">
+        <div className="w-full max-w-md bg-[#12121a] border border-white/10 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+          <div className="text-center mb-8">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-purple-500/20">
+              <Lock className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-black text-white mb-1">تسجيل دخول لوحة التحكم</h2>
+            <p className="text-xs text-white/40">مسار الإدارة المحمي (/admin-secret-dashboard)</p>
+          </div>
+
+          {/* Demo Login Credentials Box */}
+          <div className="mb-6 p-4 rounded-2xl bg-purple-500/10 border border-purple-500/30 text-xs">
+            <div className="flex items-center gap-2 text-purple-300 font-bold mb-2">
+              <Key className="w-4 h-4" />
+              <span>بيانات الدخول التجريبية (Demo Credentials):</span>
+            </div>
+            <div className="space-y-1 font-mono text-white/80">
+              <p>اسم المستخدم: <span className="text-purple-300 font-bold">admin</span></p>
+              <p>كلمة المرور: <span className="text-purple-300 font-bold">admin123</span></p>
+            </div>
+          </div>
+
+          {loginError && (
+            <div className="mb-4 p-3 rounded-xl bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs text-center font-bold">
+              {loginError}
+            </div>
+          )}
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-xs text-white/50 mb-1">اسم المستخدم</label>
+              <input
+                type="text"
+                value={usernameInput}
+                onChange={(e) => setUsernameInput(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500"
+                placeholder="admin"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs text-white/50 mb-1">كلمة المرور</label>
+              <input
+                type="password"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-sm transition-all shadow-lg shadow-purple-600/30"
+            >
+              دخول اللوحة
+            </button>
+          </form>
+
+          <button
+            onClick={() => navigate('/')}
+            className="w-full mt-4 text-center text-xs text-white/40 hover:text-white transition-colors"
+          >
+            العودة للرئيسية
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin Dashboard Management Area
+  return (
+    <div className="min-h-screen bg-[#0a0a0f] text-white p-4 md:p-8" dir="rtl">
+      <div className="max-w-6xl mx-auto">
+        {/* Header Bar */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-600 flex items-center justify-center">
+              <LayoutDashboard className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl md:text-2xl font-black">لوحة التحكم والإدارة (Admin CMS)</h1>
+              <p className="text-xs text-white/40">إدارة المقالات، روابط الهيدر والفوتر، والمحتوى</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/')}
+              className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold transition-all"
+            >
+              معاينة الموقع
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-semibold border border-rose-500/30 transition-all flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>تسجيل خروج</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Navigation Tabs */}
+        <div className="flex gap-2 mb-8 border-b border-white/10 pb-4">
+          <button
+            onClick={() => setActiveTab('articles')}
+            className={`px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 ${
+              activeTab === 'articles' ? 'bg-purple-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>إدارة المقالات (CMS Blog)</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('links')}
+            className={`px-5 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center gap-2 ${
+              activeTab === 'links' ? 'bg-purple-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10'
+            }`}
+          >
+            <LinkIcon className="w-4 h-4" />
+            <span>تعديل روابط الهيدر والفوتر</span>
+          </button>
+        </div>
+
+        {/* TAB 1: Articles CMS */}
+        {activeTab === 'articles' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Create / Edit Article Form */}
+            <div className="lg:col-span-1 bg-[#12121a] border border-white/10 rounded-2xl p-6 h-fit">
+              <h2 className="text-base font-bold mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-purple-400" />
+                <span>{editingArticleId ? 'تعديل المقال' : 'إضافة مقال جديد للـ SEO'}</span>
+              </h2>
+
+              <form onSubmit={handleSaveArticle} className="space-y-4">
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">عنوان المقال</label>
+                  <input
+                    type="text"
+                    value={newArticle.title}
+                    onChange={(e) => setNewArticle({ ...newArticle, title: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                    placeholder="مثال: دليل استخدام البريد المؤقت"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">المقتطف (Excerpt)</label>
+                  <textarea
+                    value={newArticle.excerpt}
+                    onChange={(e) => setNewArticle({ ...newArticle, excerpt: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 h-20"
+                    placeholder="وصف قصير للمقال يظهر في الصفحة الرئيسية..."
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">محتوى المقال الكامل</label>
+                  <textarea
+                    value={newArticle.content}
+                    onChange={(e) => setNewArticle({ ...newArticle, content: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500 h-36"
+                    placeholder="أدخل النص التفصيلي للمقال..."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">الكلمات المفتاحية (Tags)</label>
+                  <input
+                    type="text"
+                    value={newArticle.tags}
+                    onChange={(e) => setNewArticle({ ...newArticle, tags: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                    placeholder="مثال: خصوصية, أمان, بريد"
+                  />
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="submit"
+                    className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-xs transition-all"
+                  >
+                    {editingArticleId ? 'تحديث المقال' : 'نشر المقال'}
+                  </button>
+                  {editingArticleId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingArticleId(null);
+                        setNewArticle({ title: '', excerpt: '', content: '', tags: '' });
+                      }}
+                      className="px-4 py-2.5 bg-white/10 hover:bg-white/15 rounded-xl text-xs font-bold"
+                    >
+                      إلغاء
+                    </button>
+                  )}
+                </div>
+              </form>
+            </div>
+
+            {/* Articles List */}
+            <div className="lg:col-span-2 space-y-4">
+              <h2 className="text-base font-bold mb-4">المقالات المنشورة ({articles.length})</h2>
+              {articles.map((art) => (
+                <div key={art.id} className="bg-[#12121a] border border-white/10 rounded-2xl p-5 flex flex-col md:flex-row items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <h3 className="font-bold text-sm text-purple-300 mb-1">{art.title}</h3>
+                    <p className="text-xs text-white/50 line-clamp-2 mb-2">{art.excerpt || art.content}</p>
+                    <div className="flex items-center gap-3 text-[10px] text-white/30">
+                      <span>تاريخ النشر: {art.date}</span>
+                      <span>•</span>
+                      <span>الوسوم: {art.tags || 'عام'}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => handleEditArticle(art)}
+                      className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-amber-400"
+                      title="تعديل"
+                    >
+                      <Edit3 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteArticle(art.id)}
+                      className="p-2 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300"
+                      title="حذف"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: Navigation Links Management */}
+        {activeTab === 'links' && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Add Link Form */}
+            <div className="lg:col-span-1 bg-[#12121a] border border-white/10 rounded-2xl p-6 h-fit">
+              <h2 className="text-base font-bold mb-4 flex items-center gap-2">
+                <Plus className="w-4 h-4 text-purple-400" />
+                <span>إضافة رابط جديد</span>
+              </h2>
+
+              <form onSubmit={handleAddLink} className="space-y-4">
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">اسم الرابط</label>
+                  <input
+                    type="text"
+                    value={newLink.label}
+                    onChange={(e) => setNewLink({ ...newLink, label: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                    placeholder="مثال: من نحن"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">المسار أو الرابط (URL)</label>
+                  <input
+                    type="text"
+                    value={newLink.url}
+                    onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
+                    className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                    placeholder="مثال: /premium أو https://example.com"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs text-white/50 mb-1">مكان العرض</label>
+                  <select
+                    value={newLink.isHeader ? 'header' : 'footer'}
+                    onChange={(e) => setNewLink({ ...newLink, isHeader: e.target.value === 'header' })}
+                    className="w-full bg-[#1a1a2e] border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500"
+                  >
+                    <option value="header">روابط الهيدر (Header Nav)</option>
+                    <option value="footer">روابط الفوتر (Footer Nav)</option>
+                  </select>
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 rounded-xl font-bold text-xs transition-all"
+                >
+                  حفظ الرابط
+                </button>
+              </form>
+            </div>
+
+            {/* Links Lists */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Header Links */}
+              <div className="bg-[#12121a] border border-white/10 rounded-2xl p-6">
+                <h3 className="font-bold text-sm text-purple-300 mb-4">روابط الهيدر الحالية ({headerLinks.length})</h3>
+                <div className="space-y-2">
+                  {headerLinks.map((link) => (
+                    <div key={link.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 text-xs">
+                      <div>
+                        <span className="font-bold text-white ml-2">{link.label}</span>
+                        <span className="text-white/40 font-mono">({link.url})</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteHeaderLink(link.id)}
+                        className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/20"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Footer Links */}
+              <div className="bg-[#12121a] border border-white/10 rounded-2xl p-6">
+                <h3 className="font-bold text-sm text-blue-300 mb-4">روابط الفوتر الحالية ({footerLinks.length})</h3>
+                <div className="space-y-2">
+                  {footerLinks.map((link) => (
+                    <div key={link.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 text-xs">
+                      <div>
+                        <span className="font-bold text-white ml-2">{link.label}</span>
+                        <span className="text-white/40 font-mono">({link.url})</span>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteFooterLink(link.id)}
+                        className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/20"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 // ==================== Main App Component ====================
 export default function App() {
-  const [lang, setLang] = useState(() => localStorage.getItem('flashmail-lang') || 'en');
+  const [currentPath, setCurrentPath] = useState(window.location.pathname || '/');
+
+  const [articles, setArticles] = useLocalStorage(STORAGE_KEYS.ARTICLES, DEFAULT_ARTICLES);
+  const [headerLinks, setHeaderLinks] = useLocalStorage(STORAGE_KEYS.HEADER_LINKS, DEFAULT_HEADER_LINKS);
+  const [footerLinks, setFooterLinks] = useLocalStorage(STORAGE_KEYS.FOOTER_LINKS, DEFAULT_FOOTER_LINKS);
+
+  const [selectedArticle, setSelectedArticle] = useState(null);
+
+  // Email API States
   const [email, setEmail] = useState('');
-  const [login, setLogin] = useState('');
-  const [domain, setDomain] = useState('');
+  const [token, setToken] = useState('');
   const [messages, setMessages] = useState([]);
   const [selectedMessage, setSelectedMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [error, setError] = useState(null);
-  const [lastUpdate, setLastUpdate] = useState(null);
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(() => localStorage.getItem('flashmail-sound') !== 'false');
-  const [showQr, setShowQr] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [showCustom, setShowCustom] = useState(false);
-  const [customUser, setCustomUser] = useState('');
-  const [customDomain, setCustomDomain] = useState(DOMAINS[0]);
-  const [pinnedIds, setPinnedIds] = useState(() => {
-    try {
-      return JSON.parse(localStorage.getItem('flashmail-pinned') || '[]');
-    } catch {
-      return [];
-    }
-  });
-  const [showPinned, setShowPinned] = useState(false);
+  const [customUsername, setCustomUsername] = useState('');
+  const [domains, setDomains] = useState([]);
+  const [selectedDomain, setSelectedDomain] = useState('');
 
-  const t = translations[lang];
-  const isRTL = lang === 'ar';
-  const dropdownRef = useRef(null);
-  const intervalRef = useRef(null);
   const prevCountRef = useRef(0);
 
-  // Close dropdown on outside click
+  const navigate = (path) => {
+    window.history.pushState({}, '', path);
+    setCurrentPath(path);
+    window.scrollTo(0, 0);
+  };
+
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    const handlePopState = () => setCurrentPath(window.location.pathname || '/');
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Save language preference & set direction
-  useEffect(() => {
-    localStorage.setItem('flashmail-lang', lang);
-    document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-  }, [lang, isRTL]);
-
-  // Save sound preference
-  useEffect(() => {
-    localStorage.setItem('flashmail-sound', soundEnabled);
-  }, [soundEnabled]);
-
-  // Save pinned messages
-  useEffect(() => {
-    localStorage.setItem('flashmail-pinned', JSON.stringify(pinnedIds));
-  }, [pinnedIds]);
-
-  // Generate random email
-  const generateEmail = useCallback(async (user, dom) => {
+  // Mail Account Generator
+  const createMailGwAccount = useCallback(async (customUser = '', targetDomain = '') => {
     setLoading(true);
-    setError(null);
     try {
-      let fullEmail;
-      if (user && dom) {
-        fullEmail = `${user}@${dom}`;
-      } else {
-        try {
-          const res = await fetch('https://www.1secmail.com/api/v1/?action=genRandomMailbox&count=1');
-          if (!res.ok) throw new Error('Failed to generate email');
-          const data = await res.json();
-          if (data && data.length > 0) {
-            fullEmail = data[0];
-          } else {
-            throw new Error('No data returned');
-          }
-        } catch {
-          const randomUser = Math.random().toString(36).substring(2, 12);
-          const randomDomain = DOMAINS[Math.floor(Math.random() * DOMAINS.length)];
-          fullEmail = `${randomUser}@${randomDomain}`;
+      let availableDomains = domains;
+      if (availableDomains.length === 0) {
+        const domRes = await fetch('https://api.mail.gw/domains');
+        if (domRes.ok) {
+          const domData = await domRes.json();
+          availableDomains = domData['hydra:member'] || [];
+          setDomains(availableDomains);
         }
       }
-      const [u, d] = fullEmail.split('@');
-      setEmail(fullEmail);
-      setLogin(u);
-      setDomain(d);
+
+      const activeDomain = targetDomain || (availableDomains[0]?.domain || 'mail.gw');
+      if (availableDomains.length > 0 && !selectedDomain) {
+        setSelectedDomain(activeDomain);
+      }
+
+      const username = customUser.trim() || Math.random().toString(36).substring(2, 11);
+      const address = `${username}@${activeDomain}`;
+      const password = 'Pass' + Math.random().toString(36).substring(2, 10) + '!';
+
+      await fetch('https://api.mail.gw/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, password })
+      });
+
+      const tokenRes = await fetch('https://api.mail.gw/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, password })
+      });
+
+      if (!tokenRes.ok) throw new Error('Token error');
+      const tokenData = await tokenRes.json();
+
+      setEmail(address);
+      setToken(tokenData.token);
       setMessages([]);
       setSelectedMessage(null);
       setShowCustom(false);
+      setCustomUsername('');
     } catch (err) {
-      console.error(err);
+      const fallbackUser = customUser.trim() || Math.random().toString(36).substring(2, 11);
+      setEmail(`${fallbackUser}@1secmail.com`);
+      setToken('fallback_token');
+      setMessages([]);
+      setSelectedMessage(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [domains, selectedDomain]);
 
-  // Initial email generation on mount
   useEffect(() => {
-    generateEmail();
-  }, [generateEmail]);
+    if (currentPath === '/') {
+      createMailGwAccount();
+    }
+  }, [createMailGwAccount, currentPath]);
 
-  // Fetch inbox messages
+  // Fetch Messages
   const fetchMessages = useCallback(async (silent = false) => {
-    if (!login || !domain) return;
+    if (!token || token === 'fallback_token') return;
     if (!silent) setRefreshing(true);
     try {
-      const res = await fetch(
-        `https://www.1secmail.com/api/v1/?action=getMessages&login=${login}&domain=${domain}`
-      );
-      if (!res.ok) throw new Error('Failed to fetch messages');
-      const data = await res.json();
-      const newMessages = data || [];
-
-      // Check for new messages and play sound
-      if (silent && newMessages.length > prevCountRef.current && prevCountRef.current > 0 && soundEnabled) {
-        playNotificationSound();
+      const res = await fetch('https://api.mail.gw/messages', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const memberMsgs = data['hydra:member'] || [];
+        if (silent && memberMsgs.length > prevCountRef.current && prevCountRef.current > 0 && soundEnabled) {
+          playNotificationSound();
+        }
+        prevCountRef.current = memberMsgs.length;
+        setMessages(memberMsgs);
       }
-      prevCountRef.current = newMessages.length;
-
-      setMessages(newMessages);
-      setLastUpdate(new Date());
-      setError(null);
-    } catch (err) {
-      console.error(err);
+    } catch (e) {
+      console.error(e);
     } finally {
       if (!silent) setRefreshing(false);
     }
-  }, [login, domain, soundEnabled]);
+  }, [token, soundEnabled]);
 
-  // Auto-refresh inbox every 4 seconds
   useEffect(() => {
-    if (!login || !domain) return;
+    if (!token || currentPath !== '/') return;
     fetchMessages(true);
-    intervalRef.current = setInterval(() => fetchMessages(true), 4000);
-    return () => clearInterval(intervalRef.current);
-  }, [login, domain, fetchMessages]);
+    const interval = setInterval(() => fetchMessages(true), 5000);
+    return () => clearInterval(interval);
+  }, [token, fetchMessages, currentPath]);
 
-  // Read specific message
-  const readMessage = useCallback(async (msgId) => {
-    if (!login || !domain || !msgId) return;
-    setLoading(true);
-    try {
-      const res = await fetch(
-        `https://www.1secmail.com/api/v1/?action=readMessage&login=${login}&domain=${domain}&id=${msgId}`
-      );
-      if (!res.ok) throw new Error('Failed to read message');
-      const data = await res.json();
-      setSelectedMessage({ ...data, id: msgId });
-    } catch (err) {
-      setError(t.errorRead);
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [login, domain, t]);
-
-  // Copy email to clipboard
   const copyEmail = async () => {
     if (!email) return;
-    try {
-      await navigator.clipboard.writeText(email);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Copy failed', err);
-    }
+    await navigator.clipboard.writeText(email);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  // Reset / Generate new email
-  const resetInbox = () => {
-    setMessages([]);
-    setSelectedMessage(null);
-    setLastUpdate(null);
-    generateEmail();
-    setShowDropdown(false);
-  };
+  // Route Views
+  if (currentPath === '/admin-secret-dashboard') {
+    return (
+      <AdminDashboard
+        navigate={navigate}
+        articles={articles}
+        setArticles={setArticles}
+        headerLinks={headerLinks}
+        setHeaderLinks={setHeaderLinks}
+        footerLinks={footerLinks}
+        setFooterLinks={setFooterLinks}
+      />
+    );
+  }
 
-  // Clear all messages
-  const clearInbox = () => {
-    if (window.confirm(t.deleteConfirm)) {
-      setMessages([]);
-      setSelectedMessage(null);
-    }
-    setShowDropdown(false);
-  };
-
-  // Toggle pin message
-  const togglePin = (msgId) => {
-    setPinnedIds(prev => {
-      if (prev.includes(msgId)) return prev.filter(id => id !== msgId);
-      return [...prev, msgId];
-    });
-  };
-
-  // Print message
-  const printMessage = () => {
-    if (!selectedMessage) return;
-    const content = selectedMessage.htmlBody || selectedMessage.textBody || selectedMessage.body || '';
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <html dir="${isRTL ? 'rtl' : 'ltr'}">
-        <head>
-          <title>${selectedMessage.subject || t.noSubject}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 40px; line-height: 1.6; color: #333; }
-            h2 { margin-bottom: 10px; }
-            p { margin: 5px 0; }
-            hr { margin: 20px 0; border: none; border-top: 1px solid #ddd; }
-          </style>
-        </head>
-        <body>
-          <h2>${selectedMessage.subject || t.noSubject}</h2>
-          <p><strong>${t.from}:</strong> ${selectedMessage.from || 'Unknown'}</p>
-          <p><strong>${t.date}:</strong> ${formatDate(selectedMessage.date, lang)}</p>
-          <hr/>
-          <div>${content}</div>
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
-    printWindow.print();
-  };
-
-  // Download message as text file
-  const downloadMessage = () => {
-    if (!selectedMessage) return;
-    const content = selectedMessage.textBody || selectedMessage.body || selectedMessage.htmlBody || '';
-    const textContent = `Subject: ${selectedMessage.subject || t.noSubject}\nFrom: ${selectedMessage.from || 'Unknown'}\nDate: ${formatDate(selectedMessage.date, lang)}\n\n${content}`;
-    const blob = new Blob([textContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `flashmail-${selectedMessage.id}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  // Relative time formatter
-  const getRelativeTime = () => {
-    if (!lastUpdate) return '';
-    const diff = Math.floor((new Date() - lastUpdate) / 1000);
-    if (diff < 5) return t.justNow;
-    if (diff < 60) return `${diff}${t.secondsAgo}`;
-    return `${Math.floor(diff / 60)}${t.minutesAgo}`;
-  };
-
-  // Create custom email
-  const createCustomEmail = () => {
-    if (!customUser.trim()) return;
-    generateEmail(customUser.trim(), customDomain);
-  };
-
-  // Get pinned messages from current list
-  const pinnedMessages = messages.filter(m => pinnedIds.includes(m.id));
+  if (currentPath === '/premium') {
+    return <PremiumPage navigate={navigate} />;
+  }
 
   return (
-    <div className={`min-h-screen bg-[#0a0a0f] text-white font-sans selection:bg-purple-500/30 ${isRTL ? 'rtl' : 'ltr'}`}>
-      {/* Background Effects */}
+    <div className="min-h-screen bg-[#0a0a0f] text-white font-sans selection:bg-purple-500/30" dir="rtl">
+      {/* Background Lighting Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px]" />
-        <div className="absolute top-[40%] left-[50%] w-[300px] h-[300px] bg-pink-600/10 rounded-full blur-[100px]" />
+        <div className="absolute top-[-10%] right-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-blue-600/20 rounded-full blur-[120px]" />
       </div>
 
-      <div className="relative z-10 max-w-5xl mx-auto px-4 py-6 md:py-10">
-        {/* Header */}
-        <header className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 py-8">
+        {/* Header Navigation Bar */}
+        <header className="flex flex-col md:flex-row items-center justify-between gap-4 mb-8 pb-6 border-b border-white/10">
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-purple-600 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/25">
               <Mail className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
-                {t.appName}
+              <h1 className="text-2xl md:text-3xl font-black bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent">
+                فلاش ميل
               </h1>
-              <p className="text-white/50 text-xs md:text-sm">{t.tagline}</p>
+              <p className="text-white/40 text-xs md:text-sm">خدمة البريد الإلكتروني المؤقت المجانية والسريعة</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Dynamic Header Links */}
+          <nav className="flex items-center gap-1 bg-white/5 border border-white/10 p-1.5 rounded-2xl backdrop-blur-md">
+            {headerLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => {
+                  if (link.url.startsWith('#')) {
+                    const el = document.querySelector(link.url);
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    navigate(link.url);
+                  }
+                }}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+                  currentPath === link.url ? 'bg-purple-600 text-white shadow-md' : 'text-white/70 hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {link.label}
+              </button>
+            ))}
+
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
-              className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all"
-              title={soundEnabled ? t.soundOff : t.soundOn}
+              className="p-2 rounded-xl hover:bg-white/10 text-white/70 mr-1"
+              title={soundEnabled ? 'كتم الصوت' : 'تشغيل الصوت'}
             >
-              {soundEnabled ? (
-                <Volume2 className="w-4 h-4 text-green-400" />
-              ) : (
-                <VolumeX className="w-4 h-4 text-white/40" />
-              )}
+              {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-400" /> : <VolumeX className="w-4 h-4 text-white/40" />}
             </button>
-            <button
-              onClick={() => setLang(lang === 'en' ? 'ar' : 'en')}
-              className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-medium"
-            >
-              {lang === 'en' ? 'العربية' : 'English'}
-            </button>
-          </div>
+          </nav>
         </header>
 
-        {/* Ad Banner Top */}
-        <AdBanner t={t} />
+        {/* Top Ad Unit */}
+        <AdBanner label="إعلان علوي (Header Leaderboard)" />
 
-        {/* Email Address Card */}
-        <div className="mb-6">
+        {/* Main Email Box Card */}
+        <div className="mb-8">
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl blur opacity-30 group-hover:opacity-50 transition duration-500" />
-            <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-4 md:p-6">
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-                  {/* Email Display */}
-                  <div className="flex-1 min-w-0">
-                    <label className="text-xs text-white/40 uppercase tracking-wider font-semibold mb-1.5 block">
-                      {t.yourEmail}
-                    </label>
-                    <div className="flex items-center gap-3 bg-black/30 rounded-xl px-4 py-3 border border-white/5">
-                      <Globe className="w-5 h-5 text-purple-400 shrink-0" />
-                      <span className="text-lg md:text-xl font-mono text-white/90 truncate">
-                        {email || '...'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={copyEmail}
-                      disabled={!email}
-                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
-                    >
-                      {copied ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-400" />
-                      ) : (
-                        <Copy className="w-5 h-5 text-white/70" />
-                      )}
-                      <span className="hidden sm:inline text-sm font-medium">
-                        {copied ? t.copied : t.copy}
-                      </span>
-                    </button>
-
-                    <button
-                      onClick={() => setShowQr(true)}
-                      disabled={!email}
-                      className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 transition-all disabled:opacity-30 active:scale-95"
-                    >
-                      <QrCode className="w-5 h-5 text-white/70" />
-                    </button>
-
-                    <div className="relative" ref={dropdownRef}>
-                      <button
-                        onClick={() => setShowDropdown(!showDropdown)}
-                        className="flex items-center gap-2 px-4 py-3 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 transition-all active:scale-95"
-                      >
-                        <RefreshCw className={`w-5 h-5 text-purple-400 ${loading ? 'animate-spin' : ''}`} />
-                        <ChevronDown className={`w-4 h-4 text-purple-400 transition-transform ${showDropdown ? 'rotate-180' : ''}`} />
-                      </button>
-
-                      {showDropdown && (
-                        <div className={`absolute ${isRTL ? 'left-0' : 'right-0'} top-full mt-2 w-64 bg-[#1a1a2e] backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl shadow-black/50 overflow-hidden z-50`}>
-                          <button
-                            onClick={() => { setShowCustom(true); setShowDropdown(false); }}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
-                          >
-                            <Settings className="w-4 h-4 text-blue-400" />
-                            <span className="text-sm">{t.customUsername}</span>
-                          </button>
-                          <button
-                            onClick={resetInbox}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
-                          >
-                            <RefreshCw className="w-4 h-4 text-green-400" />
-                            <span className="text-sm">{t.generateNew}</span>
-                          </button>
-                          <button
-                            onClick={() => { fetchMessages(); setShowDropdown(false); }}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left"
-                          >
-                            <Inbox className="w-4 h-4 text-purple-400" />
-                            <span className="text-sm">{t.refreshInbox}</span>
-                          </button>
-                          <div className="border-t border-white/5" />
-                          <button
-                            onClick={clearInbox}
-                            className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors text-left text-red-400"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                            <span className="text-sm">{t.clearInbox}</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-purple-600 to-blue-600 rounded-3xl blur opacity-30 group-hover:opacity-50 transition duration-500" />
+            <div className="relative bg-[#12121a]/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
+              <div className="flex flex-col gap-6">
+                <div>
+                  <label className="text-xs text-purple-300/70 uppercase tracking-wider font-bold mb-2 block">
+                    عنوان البريد المؤقت الخاص بك
+                  </label>
+                  <div className="flex items-center gap-3 bg-black/40 rounded-2xl px-5 py-4 border border-white/10 shadow-inner">
+                    <Globe className="w-6 h-6 text-purple-400 shrink-0" />
+                    <span className="text-xl md:text-2xl font-mono text-white font-bold truncate tracking-wide">
+                      {email || 'جاري التوليد...'}
+                    </span>
                   </div>
                 </div>
 
-                {/* Custom Email Form */}
+                {/* Primary Action Buttons */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <button
+                    onClick={copyEmail}
+                    disabled={!email}
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold transition-all disabled:opacity-30 active:scale-95 shadow-lg shadow-purple-600/30"
+                  >
+                    {copied ? <CheckCircle2 className="w-5 h-5 text-emerald-300" /> : <Copy className="w-5 h-5" />}
+                    <span>{copied ? 'تم النسخ!' : 'نسخ (Copy)'}</span>
+                  </button>
+
+                  <button
+                    onClick={() => fetchMessages(false)}
+                    disabled={refreshing || !token}
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold transition-all active:scale-95"
+                  >
+                    <RefreshCw className={`w-5 h-5 text-blue-400 ${refreshing ? 'animate-spin' : ''}`} />
+                    <span>تحديث (Refresh)</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowCustom(!showCustom)}
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 font-bold transition-all active:scale-95"
+                  >
+                    <Edit3 className="w-5 h-5 text-amber-400" />
+                    <span>تغيير (Change)</span>
+                  </button>
+
+                  <button
+                    onClick={() => createMailGwAccount()}
+                    className="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/30 text-rose-300 font-bold transition-all active:scale-95"
+                  >
+                    <Trash2 className="w-5 h-5 text-rose-400" />
+                    <span>حذف (Delete)</span>
+                  </button>
+                </div>
+
                 {showCustom && (
-                  <div className="flex flex-col md:flex-row items-end gap-3 pt-3 border-t border-white/10 animate-[fadeIn_0.2s_ease-out]">
-                    <div className="flex-1 w-full">
-                      <label className="text-xs text-white/40 mb-1 block">{t.customUsername}</label>
-                      <input
-                        type="text"
-                        value={customUser}
-                        onChange={(e) => setCustomUser(e.target.value)}
-                        placeholder={t.enterUsername}
-                        className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-white/20 focus:outline-none focus:border-purple-500/50"
-                      />
-                    </div>
-                    <div className="w-full md:w-48">
-                      <label className="text-xs text-white/40 mb-1 block">{t.selectDomain}</label>
-                      <select
-                        value={customDomain}
-                        onChange={(e) => setCustomDomain(e.target.value)}
-                        className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-purple-500/50 appearance-none"
-                      >
-                        {DOMAINS.map(d => (
-                          <option key={d} value={d} className="bg-[#1a1a2e]">{d}</option>
-                        ))}
-                      </select>
-                    </div>
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col md:flex-row items-center gap-3">
+                    <input
+                      type="text"
+                      value={customUsername}
+                      onChange={(e) => setCustomUsername(e.target.value)}
+                      placeholder="أدخل الاسم المخصص..."
+                      className="w-full md:flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/20 focus:outline-none focus:border-purple-500"
+                    />
                     <button
-                      onClick={createCustomEmail}
-                      disabled={!customUser.trim() || loading}
-                      className="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-30 disabled:cursor-not-allowed transition-all text-sm font-medium active:scale-95"
+                      onClick={() => createMailGwAccount(customUsername, selectedDomain)}
+                      disabled={loading}
+                      className="w-full md:w-auto px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 font-bold transition-all shrink-0"
                     >
-                      {t.createEmail}
-                    </button>
-                    <button
-                      onClick={() => setShowCustom(false)}
-                      className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all"
-                    >
-                      <X className="w-5 h-5 text-white/50" />
+                      توليد البريد
                     </button>
                   </div>
                 )}
-
-                {/* Stats Bar */}
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/5">
-                  <div className="flex items-center gap-4 text-xs text-white/40">
-                    <div className="flex items-center gap-1.5">
-                      <Shield className="w-3.5 h-3.5" />
-                      <span>{t.anonymous}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>{t.autoRefresh}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {lastUpdate && (
-                      <div className="flex items-center gap-1.5 text-xs text-white/30">
-                        <span className={`w-2 h-2 rounded-full ${refreshing ? 'bg-purple-400 animate-pulse' : 'bg-green-400'}`} />
-                        <span>{t.updated} {getRelativeTime()}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Error Alert */}
-        {error && (
-          <div className="mb-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <span>{error}</span>
-            <button onClick={() => setError(null)} className="ml-auto hover:text-red-200">
-              <X className="w-4 h-4" />
-            </button>
+        {/* Messages Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-12">
+          <div className="lg:col-span-2 bg-[#12121a]/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-white/5">
+              <div className="flex items-center gap-2">
+                <Inbox className="w-5 h-5 text-purple-400" />
+                <h2 className="font-bold text-white">صندوق الوارد</h2>
+                <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs font-bold">
+                  {messages.length}
+                </span>
+              </div>
+            </div>
+
+            <div className="max-h-[400px] overflow-y-auto">
+              {messages.length === 0 ? (
+                <div className="py-16 text-center px-4">
+                  <Inbox className="w-8 h-8 text-white/20 mx-auto mb-2" />
+                  <p className="text-white/40 text-xs">في انتظار وصول الرسائل...</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-white/5">
+                  {messages.map((msg) => (
+                    <button
+                      key={msg.id}
+                      onClick={async () => {
+                        const res = await fetch(`https://api.mail.gw/messages/${msg.id}`, {
+                          headers: { Authorization: `Bearer ${token}` }
+                        });
+                        if (res.ok) setSelectedMessage(await res.json());
+                      }}
+                      className="w-full text-right p-4 transition-all hover:bg-white/5"
+                    >
+                      <p className="text-xs font-bold text-purple-300">{msg.from?.address}</p>
+                      <p className="text-sm font-semibold text-white truncate">{msg.subject || '(بدون موضوع)'}</p>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        )}
 
-        {/* Ad Banner Middle */}
-        <AdBanner t={t} />
-
-        {/* Pinned Messages Toggle */}
-        {pinnedMessages.length > 0 && (
-          <div className="mb-4">
-            <button
-              onClick={() => setShowPinned(!showPinned)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-yellow-500/10 border border-yellow-500/20 text-yellow-300 text-sm hover:bg-yellow-500/20 transition-all"
-            >
-              <Pin className="w-4 h-4" />
-              <span>{t.pinnedMessages} ({pinnedMessages.length})</span>
-              <ChevronDown className={`w-4 h-4 transition-transform ${showPinned ? 'rotate-180' : ''}`} />
-            </button>
-            {showPinned && (
-              <div className="mt-2 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden">
-                {pinnedMessages.map(msg => (
-                  <button
-                    key={`pinned-${msg.id}`}
-                    onClick={() => readMessage(msg.id)}
-                    className="w-full text-left px-5 py-3 hover:bg-white/5 transition-all border-b border-white/5 last:border-0 flex items-center gap-3"
-                  >
-                    <Pin className="w-4 h-4 text-yellow-400 shrink-0" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-white/90 truncate">{msg.from}</span>
-                        <span className="text-xs text-white/30">{formatDate(msg.date, lang)}</span>
-                      </div>
-                      <p className="text-sm text-white/60 truncate">{msg.subject || t.noSubject}</p>
-                    </div>
-                  </button>
-                ))}
+          <div className="lg:col-span-3 bg-[#12121a]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-6 min-h-[300px]">
+            {!selectedMessage ? (
+              <div className="flex flex-col items-center justify-center h-full text-center">
+                <Mail className="w-10 h-10 text-white/20 mb-2" />
+                <p className="text-white/40 text-xs">اختر رسالة لقراءة تفاصيلها</p>
+              </div>
+            ) : (
+              <div>
+                <h3 className="text-lg font-bold text-white mb-2">{selectedMessage.subject}</h3>
+                <p className="text-xs text-purple-300 mb-4">من: {selectedMessage.from?.address}</p>
+                <div className="prose prose-invert max-w-none text-xs text-white/80">
+                  {selectedMessage.html ? (
+                    <div dangerouslySetInnerHTML={{ __html: selectedMessage.html[0] }} />
+                  ) : (
+                    <p>{selectedMessage.text}</p>
+                  )}
+                </div>
               </div>
             )}
           </div>
-        )}
+        </div>
 
-        {/* Main Content Area */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Messages List */}
-          <div className={`lg:col-span-2 ${selectedMessage ? 'hidden lg:block' : 'block'}`}>
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <Inbox className="w-5 h-5 text-purple-400" />
-                  <h2 className="font-semibold text-white/90">{t.inbox}</h2>
-                  <span className="px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-xs font-medium">
-                    {messages.length}
-                  </span>
+        {/* Middle Ad Unit */}
+        <AdBanner label="إعلان وسط الصفحة (Native Article Ad)" />
+
+        {/* SEO Blog Articles Section */}
+        <section id="blog" className="mt-12 p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-xl">
+          <div className="flex items-center gap-3 mb-6">
+            <BookOpen className="w-6 h-6 text-purple-400" />
+            <h2 className="text-xl md:text-2xl font-black bg-gradient-to-r from-purple-200 to-blue-200 bg-clip-text text-transparent">
+              مقالات الخصوصية والأمان الرقمي (SEO Blog)
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {articles.map((art) => (
+              <div
+                key={art.id}
+                onClick={() => setSelectedArticle(art)}
+                className="p-6 rounded-2xl bg-black/30 border border-white/5 hover:border-purple-500/40 transition-all cursor-pointer group"
+              >
+                <span className="text-[10px] text-purple-400 font-bold uppercase tracking-wider block mb-2">
+                  {art.tags || 'مقالات الخصوصية'}
+                </span>
+                <h3 className="font-bold text-white text-base mb-2 group-hover:text-purple-300 transition-colors">
+                  {art.title}
+                </h3>
+                <p className="text-xs text-white/50 leading-relaxed line-clamp-3 mb-4">
+                  {art.excerpt || art.content}
+                </p>
+                <div className="flex items-center justify-between text-[11px] text-purple-300 font-bold">
+                  <span>اقرأ المقال كاملة ←</span>
+                  <span className="text-white/30 font-normal">{art.date}</span>
                 </div>
-                <button
-                  onClick={() => fetchMessages()}
-                  disabled={refreshing}
-                  className="p-2 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-50"
-                >
-                  <RefreshCw className={`w-4 h-4 text-white/50 ${refreshing ? 'animate-spin' : ''}`} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Single Article Reader Modal */}
+        {selectedArticle && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+            <div className="bg-[#12121a] border border-white/10 rounded-3xl p-6 md:p-8 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="flex items-center justify-between pb-4 border-b border-white/10 mb-6">
+                <span className="text-xs text-purple-300 font-bold">{selectedArticle.tags}</span>
+                <button onClick={() => setSelectedArticle(null)} className="p-2 text-white/50 hover:text-white">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-
-              <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
-                {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                      <Inbox className="w-8 h-8 text-white/20" />
-                    </div>
-                    <p className="text-white/40 text-sm mb-1">{t.emptyInbox}</p>
-                    <p className="text-white/20 text-xs">{t.waitingEmails}</p>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-white/5">
-                    {messages.map((msg) => {
-                      const isPinned = pinnedIds.includes(msg.id);
-                      return (
-                        <div
-                          key={msg.id}
-                          className={`group relative px-5 py-4 transition-all duration-200 hover:bg-white/5 ${
-                            selectedMessage?.id === msg.id ? 'bg-white/10' : ''
-                          }`}
-                        >
-                          <button
-                            onClick={() => readMessage(msg.id)}
-                            className="w-full text-left"
-                          >
-                            <div className="flex items-start justify-between gap-3 mb-1">
-                              <span className="text-sm font-medium text-white/90 truncate">
-                                {msg.from || 'Unknown'}
-                              </span>
-                              <span className="text-xs text-white/30 shrink-0">
-                                {formatDate(msg.date, lang)}
-                              </span>
-                            </div>
-                            <p className="text-sm text-white/70 font-medium mb-1 truncate">
-                              {msg.subject || t.noSubject}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-white/30 truncate">
-                                {msg.body ? msg.body.substring(0, 60) + '...' : 'No preview'}
-                              </span>
-                              <Eye className="w-3.5 h-3.5 text-white/20 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
-                            </div>
-                          </button>
-                          <button
-                            onClick={(e) => { e.stopPropagation(); togglePin(msg.id); }}
-                            className={`absolute top-4 ${isRTL ? 'left-3' : 'right-3'} opacity-0 group-hover:opacity-100 transition-all p-1 rounded-lg hover:bg-white/10`}
-                            title={isPinned ? t.unpinMessage : t.pinMessage}
-                          >
-                            <Pin className={`w-4 h-4 ${isPinned ? 'text-yellow-400 fill-yellow-400' : 'text-white/40'}`} />
-                          </button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+              <h2 className="text-xl font-bold text-white mb-4">{selectedArticle.title}</h2>
+              <p className="text-xs text-white/40 mb-6">{selectedArticle.date}</p>
+              <div className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+                {selectedArticle.content}
               </div>
             </div>
           </div>
+        )}
 
-          {/* Message Detail */}
-          <div className={`lg:col-span-3 ${selectedMessage ? 'block' : 'hidden lg:block'}`}>
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden min-h-[400px]">
-              {!selectedMessage ? (
-                <div className="flex flex-col items-center justify-center h-full min-h-[400px] px-4 text-center">
-                  <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                    <Mail className="w-10 h-10 text-white/20" />
-                  </div>
-                  <p className="text-white/40 text-lg font-medium mb-1">{t.selectEmail}</p>
-                  <p className="text-white/20 text-sm">{t.chooseMessage}</p>
-                </div>
-              ) : (
-                <div className="flex flex-col h-full">
-                  {/* Message Header */}
-                  <div className="flex items-center gap-3 px-5 py-4 border-b border-white/10">
-                    <button
-                      onClick={() => setSelectedMessage(null)}
-                      className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-white/5 transition-colors"
-                    >
-                      <ArrowLeft className="w-5 h-5 text-white/70" />
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-base font-semibold text-white/90 truncate">
-                        {selectedMessage.subject || t.noSubject}
-                      </h3>
-                      <div className="flex items-center gap-3 text-xs text-white/40 mt-1">
-                        <span>{t.from}: {selectedMessage.from || 'Unknown'}</span>
-                        <span>•</span>
-                        <span>{formatDate(selectedMessage.date, lang)}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => togglePin(selectedMessage.id)}
-                        className={`p-2 rounded-lg hover:bg-white/5 transition-colors ${pinnedIds.includes(selectedMessage.id) ? 'text-yellow-400' : 'text-white/40'}`}
-                        title={pinnedIds.includes(selectedMessage.id) ? t.unpinMessage : t.pinMessage}
-                      >
-                        <Pin className={`w-5 h-5 ${pinnedIds.includes(selectedMessage.id) ? 'fill-yellow-400' : ''}`} />
-                      </button>
-                      <button
-                        onClick={printMessage}
-                        className="p-2 rounded-lg hover:bg-white/5 transition-colors text-white/40 hover:text-white/70"
-                        title={t.print}
-                      >
-                        <Printer className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={downloadMessage}
-                        className="p-2 rounded-lg hover:bg-white/5 transition-colors text-white/40 hover:text-white/70"
-                        title={t.download}
-                      >
-                        <Download className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => setSelectedMessage(null)}
-                        className="hidden lg:block p-2 rounded-lg hover:bg-white/5 transition-colors"
-                      >
-                        <X className="w-5 h-5 text-white/50" />
-                      </button>
-                    </div>
-                  </div>
+        {/* Bottom Ad Unit */}
+        <AdBanner label="إعلان سفلي (Footer Banner)" />
 
-                  {/* Message Body */}
-                  <div className="flex-1 p-5 overflow-y-auto custom-scrollbar">
-                    {loading ? (
-                      <div className="flex items-center justify-center py-20">
-                        <Loader2 className="w-8 h-8 text-purple-400 animate-spin" />
-                      </div>
-                    ) : (
-                      <div className="prose prose-invert max-w-none">
-                        {selectedMessage.htmlBody ? (
-                          <iframe
-                            srcDoc={`<style>body{color:#e5e5e5;font-family:sans-serif;line-height:1.6;padding:0;margin:0;max-width:100%;word-wrap:break-word;}a{color:#a78bfa;}img{max-width:100%;height:auto;}blockquote{border-left:3px solid #a78bfa;padding-left:1rem;margin-left:0;color:#ccc;}</style>${selectedMessage.htmlBody}`}
-                            className="w-full min-h-[300px] bg-transparent border-0"
-                            sandbox="allow-same-origin"
-                            title="Email Content"
-                          />
-                        ) : selectedMessage.textBody ? (
-                          <div className="text-white/80 whitespace-pre-wrap leading-relaxed">
-                            {selectedMessage.textBody}
-                          </div>
-                        ) : selectedMessage.body ? (
-                          <div className="text-white/80 whitespace-pre-wrap leading-relaxed">
-                            {selectedMessage.body}
-                          </div>
-                        ) : (
-                          <div className="text-white/30 text-center py-10">{t.noContent}</div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Attachments */}
-                    {selectedMessage.attachments && selectedMessage.attachments.length > 0 && (
-                      <div className="mt-6 pt-6 border-t border-white/10">
-                        <h4 className="text-sm font-medium text-white/60 mb-3">
-                          {t.attachments} ({selectedMessage.attachments.length})
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedMessage.attachments.map((att, idx) => (
-                            <a
-                              key={idx}
-                              href={`https://www.1secmail.com/api/v1/?action=download&login=${login}&domain=${domain}&id=${selectedMessage.id}&file=${att.filename}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 transition-colors text-sm text-purple-300"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              <span className="truncate max-w-[200px]">{att.filename}</span>
-                              <span className="text-white/30 text-xs">({Math.round(att.size / 1024)} KB)</span>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* Footer Navigation */}
+        <footer className="mt-12 text-center text-xs text-white/40 border-t border-white/5 pt-8 pb-4">
+          <div className="flex flex-wrap items-center justify-center gap-6 mb-4">
+            {footerLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => navigate(link.url)}
+                className="hover:text-white transition-colors"
+              >
+                {link.label}
+              </button>
+            ))}
           </div>
-        </div>
-
-        {/* Ad Banner Bottom */}
-        <AdBanner t={t} />
-
-        {/* Footer */}
-        <footer className="mt-8 text-center">
-          <div className="flex items-center justify-center gap-2 text-white/20 text-xs">
-            <Shield className="w-3.5 h-3.5" />
-            <span>FlashMail — {t.anonymous} • {t.autoRefresh}</span>
-          </div>
+          <p>© {new Date().getFullYear()} فلاش ميل — جميع الحقوق محفوظة</p>
         </footer>
       </div>
-
-      {/* QR Code Modal */}
-      {showQr && email && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setShowQr(false)}>
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">{t.qrCode}</h3>
-              <button onClick={() => setShowQr(false)} className="p-1 rounded-lg hover:bg-white/5">
-                <X className="w-5 h-5 text-white/50" />
-              </button>
-            </div>
-            <div className="flex flex-col items-center gap-4">
-              <div className="bg-white p-4 rounded-xl">
-                <img
-                  src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(email)}`}
-                  alt="QR Code"
-                  className="w-48 h-48"
-                />
-              </div>
-              <p className="text-sm text-white/50 text-center">{t.scanQr}</p>
-              <p className="text-sm font-mono text-purple-300 bg-purple-500/10 px-3 py-1 rounded-lg">{email}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Custom Scrollbar Styles */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.1);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(255, 255, 255, 0.2);
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }
