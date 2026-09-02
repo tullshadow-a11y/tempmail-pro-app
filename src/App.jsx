@@ -751,6 +751,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedOtp, setCopiedOtp] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [showCustom, setShowCustom] = useState(false);
   const [customUsername, setCustomUsername] = useState('');
@@ -784,7 +786,7 @@ export default function App() {
     return info;
   }, []);
 
-  // Mail Account Generator using mail.gw live API
+  // Mail Account Generator using mail.gw live API with Domain Rotator
   const createMailGwAccount = useCallback(async (customUser = '', targetDomain = '', isInitial = false) => {
     const currentLimitInfo = updateDailyLimitState();
 
@@ -802,7 +804,7 @@ export default function App() {
         setDomains(activeDomains);
       }
 
-      const domainToUse = targetDomain || selectedDomain || (activeDomains[0]?.domain || '');
+      const domainToUse = targetDomain || selectedDomain || '';
       const { account: newAccount, token: newToken } = await MailGwService.createAccount(customUser, domainToUse);
 
       // Increment daily limit count if not initial page load
@@ -865,6 +867,13 @@ export default function App() {
     await navigator.clipboard.writeText(email);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const copyText = async (text, setCopiedState) => {
+    if (!text) return;
+    await navigator.clipboard.writeText(text);
+    setCopiedState(true);
+    setTimeout(() => setCopiedState(false), 2000);
   };
 
   const handleOpenMessage = async (msgId) => {
@@ -1113,10 +1122,61 @@ export default function App() {
                 <p className="text-xs text-purple-300 mb-1">من: {selectedMessage.from?.address} ({selectedMessage.from?.name})</p>
                 <p className="text-[11px] text-white/40 mb-4">التاريخ: {new Date(selectedMessage.createdAt).toLocaleString('ar-EG')}</p>
 
+                {/* Highlighted OTP Extractor Card */}
                 {selectedMessage.extractedOtp && (
-                  <div className="mb-4 p-3 rounded-xl bg-purple-500/20 border border-purple-500/40 text-purple-200 text-xs font-mono font-bold flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-purple-400" />
-                    <span>رمز التفعيل / Verification Code: <span className="text-amber-300 text-sm">{selectedMessage.extractedOtp}</span></span>
+                  <div className="mb-4 p-4 rounded-2xl bg-gradient-to-r from-purple-900/60 to-amber-950/50 border-2 border-amber-400/50 shadow-lg flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2.5 rounded-xl bg-amber-400/20 text-amber-300">
+                        <Shield className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <p className="text-[11px] text-amber-300/80 font-bold uppercase tracking-wider">رمز التفعيل المكتشف (OTP Code)</p>
+                        <p className="text-2xl font-mono font-black text-amber-300 tracking-widest">{selectedMessage.extractedOtp}</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => copyText(selectedMessage.extractedOtp, setCopiedOtp)}
+                      className="px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-extrabold text-xs transition-all shadow flex items-center gap-1.5 shrink-0"
+                    >
+                      {copiedOtp ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                      <span>{copiedOtp ? 'تم النسخ!' : 'نسخ الرمز'}</span>
+                    </button>
+                  </div>
+                )}
+
+                {/* Highlighted Activation Links Extractor Card */}
+                {selectedMessage.extractedLinks && selectedMessage.extractedLinks.length > 0 && (
+                  <div className="mb-4 p-4 rounded-2xl bg-purple-950/60 border border-purple-500/40 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-purple-300">
+                      <ExternalLink className="w-4 h-4 text-purple-400" />
+                      <span>رابط التفعيل والتأكيد المباشر (Activation Links):</span>
+                    </div>
+                    {selectedMessage.extractedLinks.map((link, idx) => (
+                      <div key={idx} className="flex items-center justify-between gap-2 p-2.5 rounded-xl bg-black/40 border border-white/5">
+                        <span className="text-xs font-mono text-purple-200 truncate dir-ltr">{link}</span>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <button
+                            onClick={() => copyText(link, () => {
+                              setCopiedLink(idx);
+                              setTimeout(() => setCopiedLink(null), 2000);
+                            })}
+                            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white font-bold text-[11px] transition-all flex items-center gap-1"
+                          >
+                            {copiedLink === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                            <span>{copiedLink === idx ? 'تم' : 'نسخ'}</span>
+                          </button>
+                          <a
+                            href={link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white font-bold text-[11px] transition-all flex items-center gap-1"
+                          >
+                            <span>فتح</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
 

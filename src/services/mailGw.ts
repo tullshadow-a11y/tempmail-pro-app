@@ -47,6 +47,42 @@ export function extractVerificationCode(text?: string, html?: string, subject?: 
   return null;
 }
 
+// Extract activation and verification URLs from text or HTML body
+export function extractActivationLinks(text?: string, html?: string): string[] {
+  const content = `${text || ''} ${html || ''}`;
+  if (!content.trim()) return [];
+
+  const urlRegex = /(https?:\/\/[^\s"'<>]+)/gi;
+  const matches = content.match(urlRegex) || [];
+  const uniqueUrls: string[] = [];
+
+  const keywords = ['confirm', 'verify', 'activate', 'token', 'auth', 'login', 'reset', 'password', 'user', 'account', 'link', 'click', 'تأكيد', 'تفعيل', 'التحقق'];
+
+  for (let rawUrl of matches) {
+    // Clean trailing punctuation or brackets
+    let cleanUrl = rawUrl.replace(/[.,;>)]+$/, '');
+    if (!uniqueUrls.includes(cleanUrl)) {
+      const lower = cleanUrl.toLowerCase();
+      if (keywords.some(kw => lower.includes(kw))) {
+        uniqueUrls.push(cleanUrl);
+      }
+    }
+  }
+
+  // Fallback: if no keyword-matching URLs found, return any HTTP/HTTPS links (up to 3)
+  if (uniqueUrls.length === 0) {
+    for (let rawUrl of matches) {
+      let cleanUrl = rawUrl.replace(/[.,;>)]+$/, '');
+      if (!uniqueUrls.includes(cleanUrl) && !cleanUrl.includes('w3.org') && !cleanUrl.includes('schema.org')) {
+        uniqueUrls.push(cleanUrl);
+        if (uniqueUrls.length >= 3) break;
+      }
+    }
+  }
+
+  return uniqueUrls;
+}
+
 // Resilient API Call with CORS & Netlify Function Proxy Fallback
 async function apiCall(endpoint: string, method: string = 'GET', bodyObj?: any, token?: string): Promise<{ ok: boolean; status: number; data: any }> {
   const targetUrl = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint}`;
@@ -129,10 +165,20 @@ export class MailGwService {
     ];
   }
 
-  // Create a real account on mail.gw via POST /accounts and extract JWT Token via POST /token
+  // Create a real account on mail.gw via POST /accounts with Domain Rotator support
   static async createAccount(username?: string, domain?: string): Promise<{ account: Account; token: string }> {
     const domains = await this.getDomains();
-    const selectedDomain = domain || (domains.length > 0 ? domains[0].domain : 'guerrillamail.biz');
+
+    // Domain Rotator: Pick domain at random if domain is not explicitly provided
+    let selectedDomain = domain;
+    if (!selectedDomain && domains.length > 0) {
+      const randomIndex = Math.floor(Math.random() * domains.length);
+      selectedDomain = domains[randomIndex].domain;
+    }
+    if (!selectedDomain) {
+      selectedDomain = 'guerrillamail.biz';
+    }
+
     const user = (username && username.trim()) ? username.trim().toLowerCase().replace(/[^a-z0-9._-]/g, '') : generateRandomUsername();
     const address = `${user}@${selectedDomain}`;
     const password = generateRandomPassword();
@@ -232,6 +278,7 @@ export class MailGwService {
       const htmlArray = Array.isArray(data.html) ? data.html : (data.html ? [data.html] : []);
       const htmlContent = htmlArray.join('');
       const otp = extractVerificationCode(data.text, htmlContent, data.subject);
+      const links = extractActivationLinks(data.text, htmlContent);
 
       return {
         id: data.id || id,
@@ -251,6 +298,7 @@ export class MailGwService {
         html: htmlArray,
         attachments: data.attachments || [],
         extractedOtp: otp || undefined,
+        extractedLinks: links.length > 0 ? links : undefined,
       };
     } catch (err) {
       console.warn('Failed to fetch message detail:', err);
